@@ -9,6 +9,9 @@
 - name: create instance directory
   file: owner=matz group=http mode=770 path={{ instance_path }} state=directory
 
+- name: create instance config
+  template: src=fmexp.conf.j2 dest={{ instance_path }}/fmexp.conf owner=matz group=http mode=640
+
 - name: create nginx log directory
   file: owner=http group=log mode=750 state=directory path=/var/log/nginx/{{ domain }}
 
@@ -16,7 +19,7 @@
   postgresql_db: name={{ app_name }} encoding=UTF-8
 
 - name: copy vhost
-  template: src=nginx.conf.j2 dest=/etc/nginx/vhosts/{{ app_name }}.conf owner=root group=root mode=750
+  template: src=nginx.conf.j2 dest=/etc/nginx/vhosts/{{ app_name }}.conf owner=root group=root mode=640
 
 - name: create uwsgi vassals directory
   file: owner=matz group=http mode=750 state=directory path=/etc/uwsgi/vassals

@@ -22,5 +22,16 @@
 - name: build frontend
   command: /usr/bin/make {{ app_name }}-frontend chdir={{ app_path }}
 
+- name: migrate database
+  command: chdir={{ app_path }} env/bin/flask db upgrade
+  environment:
+    FLASK_APP: fmexp
+    FMEXP_INSTANCE_PATH: '{{ instance_path }}'
+  register: migrate
+
+- debug: msg="{{ item }}"
+  with_items: '{{ migrate.stderr_lines|default(omit) }}'
+  when: migrate.changed
+
 - name: touch uwsgi vassal
   file: state=touch path=/etc/uwsgi/vassals/{{ app_name }}.ini
