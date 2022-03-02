@@ -1,0 +1,11 @@
+{% if app_name == 'fmexp-layout1' %}
+SECRET_KEY = 'Johxaedies7uJiek2noh9cheegee7eephaihahohViereephae3Uz1beijoo0chaeriego2eesiehoh8yah1uch4ahBeegh0xairaiXaedoozeik9OhCheimeenoa5th'
+
+{% else %}
+SECRET_KEY = 'aithei7aepie4ha4Wiefae3Baithiej9queiNgoozahJaesh1ahme1ukai9ohquail6AiVoot9ohsohjaejiop0toongaiV9ohdoquei9aeruoxe9aeve2gah6tah2Ch'
+
+{% endif %}
+
+SQLALCHEMY_DATABASE_URI = 'postgresql://postgres@/{{ app_name }}'
+
+INSTANCE_PATH = {{ instance_path }}

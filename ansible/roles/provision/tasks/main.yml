@@ -1,13 +1,19 @@
 ---
 
 - name: install system packages
-  pacman: name=git,python-virtualenv,python-pip,uwsgi,uwsgi-plugin-python,yarn state=present update_cache=yes
+  pacman: name=git,python-virtualenv,python-pip,python-psycopg2,uwsgi,uwsgi-plugin-python,yarn state=present update_cache=yes
 
 - name: create empty directory to clone into
   file: owner=matz group=http mode=770 path={{ app_path }} state=directory
 
+- name: create instance directory
+  file: owner=matz group=http mode=770 path={{ instance_path }} state=directory
+
 - name: create nginx log directory
   file: owner=http group=log mode=750 state=directory path=/var/log/nginx/{{ domain }}
+
+- name: create postgresql database
+  postgresql_db: name={{ app_name }} encoding=UTF-8
 
 - name: copy vhost
   template: src=nginx.conf.j2 dest=/etc/nginx/vhosts/{{ app_name }}.conf owner=root group=root mode=750

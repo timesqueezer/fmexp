@@ -15,20 +15,20 @@ flask-shell:
 frontend:
 	cd fmexp/templates/frontend; yarn
 
-fmexp1-frontend:
+fmexp-layout1-frontend:
 	cd fmexp/templates/frontend; yarn build-frontend1-production
 
-fmexp2-frontend:
+fmexp-layout2-frontend:
 	cd fmexp/templates/frontend; yarn build-frontend2-production
 
 provision-layout1:
-	ansible-playbook ansible/provision-layout1
+	ansible-playbook -i ansible/hosts ansible/provision-layout1.yml
 
 provision-layout2:
-	ansible-playbook ansible/provision-layout2
+	ansible-playbook -i ansible/hosts ansible/provision-layout2.yml
 
 deploy-layout1:
-	ansible-playbook ansible/deploy-layout1
+	ansible-playbook -i ansible/hosts ansible/deploy-layout1.yml
 
 deploy-layout2:
-	ansible-playbook ansible/deploy-layout2
+	ansible-playbook -i ansible/hosts ansible/deploy-layout2.yml

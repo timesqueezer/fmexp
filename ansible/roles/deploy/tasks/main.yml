@@ -4,7 +4,7 @@
   register: gitstatus
   git: accept_hostkey=yes
        force=yes
-       repo=git@gitub.com:timesqueezer/fmexp.git
+       repo=git@github.com:timesqueezer/fmexp.git
        dest={{ app_path }}
 
 - name: ensure the directory is owned by matz but writable by the http group

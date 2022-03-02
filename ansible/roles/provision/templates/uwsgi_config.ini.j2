@@ -1,7 +1,7 @@
 [uwsgi]
 virtualenv = {{ app_path}}/env
 chdir = {{ app_path }}
-module = run
+module = app
 callable = app
 plugins = python
 processes = 16
@@ -11,3 +11,4 @@ spooler-chdir = %v
 socket = /run/uwsgi/{{ app_name }}.sock
 logto = /var/log/uwsgi/%N.log
 umask = 007
+env = FMEXP_INSTANCE_PATH={{ instance_path }}
