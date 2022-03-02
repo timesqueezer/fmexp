@@ -1,0 +1,10 @@
+---
+
+- hosts: servers
+  remote_user: matz
+  vars:
+    - app_name: fmexp-layout1
+    - app_path: /srv/http/{{ app_name }}
+
+  roles:
+    - deploy

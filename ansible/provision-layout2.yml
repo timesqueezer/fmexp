@@ -1,0 +1,11 @@
+---
+
+- hosts: servers
+  remote_user: root
+  vars:
+    - app_name: fmexp-layout2
+    - app_path: /srv/http/{{ app_name }}
+    - domain: fmexp2.matzradloff.info
+
+  roles:
+    - provision

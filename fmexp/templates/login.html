@@ -1,0 +1,25 @@
+<div class="row">
+  <div class="col-xs-12 col-sm-8 offset-sm-2 col-md-6 offset-md-3 col-lg-4 offset-lg-4">
+    <div class="bg-light shadow-sm p-4">
+      <h2 class="mb-3">Login</h2>
+
+      <form method="POST" @submit.prevent="login">
+        {{ form.csrf_token }}
+        <div class="form-floating mb-3">
+          {{ form.email(class_='form-control', placeholder=form.email.label.text) }}
+          {{ form.email.label }}
+        </div>
+        <div class="form-floating mb-3">
+          {{ form.password(class_='form-control', placeholder=form.password.label.text) }}
+          {{ form.password.label }}
+        </div>
+
+        <div v-if="errorMessage" class="alert alert-danger" role="alert" v-text="errorMessage"></div>
+
+        <div>
+          <button class="btn btn-primary w-100" type="submit">Login</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

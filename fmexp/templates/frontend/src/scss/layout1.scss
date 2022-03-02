@@ -1,0 +1,35 @@
+@import "open-sans";
+
+@import "../../node_modules/bootstrap/scss/functions";
+
+
+$enable-shadows: true;
+$enable-rounded: true;
+$enable-gradients: false;
+
+$body-bg: #f1f5f9;
+$light: #fff;
+
+$primary: #2263a5;
+$secondary: #315272;
+$info: #44ADDB;
+$warning: #E0A47D;
+$danger: #A84423;
+
+$font-family-base: 'Open Sans';
+
+$input-bg: tint-color($body-bg, 30%);
+$form-check-input-width: 1.5em;
+
+$navbar-padding-y: 1rem;
+
+
+@import "./custom.scss";
+
+.body-gradient {
+  background:
+    radial-gradient(
+      circle at bottom right, shade-color($body-bg, 15%), $body-bg
+    ),
+  ;
+}

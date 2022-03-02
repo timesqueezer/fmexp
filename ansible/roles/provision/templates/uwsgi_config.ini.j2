@@ -1,0 +1,13 @@
+[uwsgi]
+virtualenv = {{ app_path}}/env
+chdir = {{ app_path }}
+module = run
+callable = app
+plugins = python
+processes = 16
+enable-threads = true
+spooler = /tmp
+spooler-chdir = %v
+socket = /run/uwsgi/{{ app_name }}.sock
+logto = /var/log/uwsgi/%N.log
+umask = 007

@@ -1,0 +1,26 @@
+---
+
+- name: pull git repo
+  register: gitstatus
+  git: accept_hostkey=yes
+       force=yes
+       repo=git@gitub.com:timesqueezer/portfolio.git
+       dest={{ app_path }}
+
+- name: ensure the directory is owned by matz but writable by the http group
+  file: owner=matz group=http state=directory path={{ app_path }}
+
+- name: install pip stuff into virtualenv
+  pip: state=latest
+       requirements={{ app_path }}/requirements.txt
+       virtualenv={{ app_path }}/env
+       virtualenv_command=virtualenv3
+
+- name: install node stuff
+  command: /usr/bin/make frontend chdir={{ app_path }}
+
+- name: build frontend
+  command: /usr/bin/make frontend-build chdir={{ app_path }}
+
+- name: touch uwsgi vassal
+  file: state=touch path=/etc/uwsgi/vassals/portfolio.ini

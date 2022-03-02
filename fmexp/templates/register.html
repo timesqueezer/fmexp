@@ -1,0 +1,68 @@
+<div class="row">
+  <div class="col-xs-12 col-sm-8 offset-sm-2 col-md-6 offset-md-3 col-lg-4 offset-lg-4">
+    <div class="bg-light shadow-sm p-4">
+      <h2 class="mb-3">Register</h2>
+
+      <form method="POST" @submit.prevent="register">
+        {{ form.csrf_token }}
+        <div class="form-floating mb-3">
+          {{
+            form.email.meta.render_field(
+              form.email,
+              {
+                'class_': 'form-control',
+                'placeholder': form.email.label.text,
+                'v-on:input': 'resetValidity'
+              }
+            )
+          }}
+          {{ form.email.label }}
+        </div>
+        <div class="form-floating mb-3">
+          {{
+            form.password.meta.render_field(
+              form.password,
+              {
+                'class_': 'form-control',
+                'placeholder': form.password.label.text,
+                'v-on:input': 'resetValidity'
+              }
+            )
+          }}
+          {{ form.password.label }}
+        </div>
+        <div class="form-floating mb-3">
+          {{
+            form.password2.meta.render_field(
+              form.password2,
+              {
+                'class_': 'form-control',
+                'placeholder': form.password2.label.text,
+                'v-on:input': 'resetValidity'
+              }
+            )
+          }}
+          {{ form.password2.label }}
+        </div>
+        <div class="form-check mb-3">
+          {{
+            form.not_robot.meta.render_field(
+              form.not_robot,
+              {
+                'class_': 'form-check-input',
+                'v-on:input': 'resetValidity'
+              }
+            )
+          }}
+          {{ form.not_robot.label(class_='form-check-label') }}
+        </div>
+
+        <div v-if="errorMessage" class="alert alert-danger" role="alert" v-text="errorMessage"></div>
+
+        <div>
+            <button class="btn btn-primary w-100" type="submit">Register</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

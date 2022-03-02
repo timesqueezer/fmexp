@@ -1,0 +1,213 @@
+<div class="row">
+  <div class="col-xs-12 col-sm-10 offset-sm-1 col-md-8 offset-md-2">
+    <div class="bg-light shadow-sm p-4">
+      <h2 class="mb-3">Edit Profile</h2>
+
+      <form method="POST" @submit.prevent="editProfile">
+        {{ user_profile_form.csrf_token }}
+        <div class="row">
+          <div class="col-sm-12 col-md-6">
+            <div class="form-floating mb-3">
+              {{
+                user_profile_form.email.meta.render_field(
+                  user_profile_form.email,
+                  {
+                    'class_': 'form-control',
+                    'placeholder': user_profile_form.email.label.text,
+                    'v-on:input': 'resetValidity'
+                  }
+                )
+              }}
+              {{ user_profile_form.email.label }}
+            </div>
+            <div class="form-floating mb-3">
+              {{
+                user_profile_form.first_name.meta.render_field(
+                  user_profile_form.first_name,
+                  {
+                    'class_': 'form-control',
+                    'placeholder': user_profile_form.first_name.label.text,
+                    'v-on:input': 'resetValidity'
+                  }
+                )
+              }}
+              {{ user_profile_form.first_name.label }}
+            </div>
+            <div class="form-floating mb-3">
+              {{
+                user_profile_form.last_name.meta.render_field(
+                  user_profile_form.last_name,
+                  {
+                    'class_': 'form-control',
+                    'placeholder': user_profile_form.last_name.label.text,
+                    'v-on:input': 'resetValidity'
+                  }
+                )
+              }}
+              {{ user_profile_form.last_name.label }}
+            </div>
+            <div class="form-floating mb-3">
+              {{
+                user_profile_form.date_of_birth.meta.render_field(
+                  user_profile_form.date_of_birth,
+                  {
+                    'class_': 'form-control',
+                    'placeholder': user_profile_form.date_of_birth.label.text,
+                    'v-on:input': 'resetValidity'
+                  }
+                )
+              }}
+              {{ user_profile_form.date_of_birth.label }}
+            </div>
+          </div>
+
+          <div class="col-sm-12 col-md-6">
+            <div class="form-floating mb-3">
+              {{
+                user_profile_form.address_line_1.meta.render_field(
+                  user_profile_form.address_line_1,
+                  {
+                    'class_': 'form-control',
+                    'placeholder': user_profile_form.address_line_1.label.text,
+                    'v-on:input': 'resetValidity'
+                  }
+                )
+              }}
+              {{ user_profile_form.address_line_1.label }}
+            </div>
+            <div class="form-floating mb-3">
+              {{
+                user_profile_form.address_line_2.meta.render_field(
+                  user_profile_form.address_line_2,
+                  {
+                    'class_': 'form-control',
+                    'placeholder': user_profile_form.address_line_2.label.text,
+                    'v-on:input': 'resetValidity'
+                  }
+                )
+              }}
+              {{ user_profile_form.address_line_2.label }}
+            </div>
+            <div class="form-floating mb-3">
+              {{
+                user_profile_form.zip_code.meta.render_field(
+                  user_profile_form.zip_code,
+                  {
+                    'class_': 'form-control',
+                    'placeholder': user_profile_form.zip_code.label.text,
+                    'v-on:input': 'resetValidity'
+                  }
+                )
+              }}
+              {{ user_profile_form.zip_code.label }}
+            </div>
+            <div class="form-floating mb-3">
+              {{
+                user_profile_form.city.meta.render_field(
+                  user_profile_form.city,
+                  {
+                    'class_': 'form-control',
+                    'placeholder': user_profile_form.city.label.text,
+                    'v-on:input': 'resetValidity'
+                  }
+                )
+              }}
+              {{ user_profile_form.city.label }}
+            </div>
+            <div class="form-floating mb-3">
+              {{
+                user_profile_form.state.meta.render_field(
+                  user_profile_form.state,
+                  {
+                    'class_': 'form-control',
+                    'placeholder': user_profile_form.state.label.text,
+                    'v-on:input': 'resetValidity'
+                  }
+                )
+              }}
+              {{ user_profile_form.state.label }}
+            </div>
+            <div class="form-floating mb-3">
+              {{
+                user_profile_form.country.meta.render_field(
+                  user_profile_form.country,
+                  {
+                    'class_': 'form-control',
+                    'placeholder': user_profile_form.country.label.text,
+                    'v-on:input': 'resetValidity'
+                  }
+                )
+              }}
+              {{ user_profile_form.country.label }}
+            </div>
+          </div>
+        </div>
+
+        <div v-if="errorMessage" class="alert alert-danger" role="alert" v-text="errorMessage"></div>
+
+        <div>
+            <button
+              class="btn"
+              type="submit"
+              :class="profileSuccessMessage ? 'btn-success' : 'btn-primary'"
+              :disabled="profileSuccessMessage"
+            >
+              {% raw %}
+              {{ profileSuccessMessage || 'Edit Profile' }}
+              {% endraw %}
+            </button>
+        </div>
+      </form>
+
+      <hr class="my-4">
+
+      <h2 class="mb-3">Change Password</h2>
+      <form method="POST" @submit.prevent="editProfile">
+        {{ user_change_password_form.csrf_token(id='csrf_token_change_password') }}
+        <div class="form-floating mb-3">
+          {{
+            user_change_password_form.password.meta.render_field(
+              user_change_password_form.password,
+              {
+                'class_': 'form-control',
+                'placeholder': user_change_password_form.password.label.text,
+                'v-on:input': 'resetValidity'
+              }
+            )
+          }}
+          {{ user_change_password_form.password.label }}
+        </div>
+        <div class="form-floating mb-3">
+          {{
+            user_change_password_form.password2.meta.render_field(
+              user_change_password_form.password2,
+              {
+                'class_': 'form-control',
+                'placeholder': user_change_password_form.password2.label.text,
+                'v-on:input': 'resetValidity'
+              }
+            )
+          }}
+          {{ user_change_password_form.password2.label }}
+        </div>
+
+        <div v-if="errorMessage" class="alert alert-danger" role="alert" v-text="errorMessage"></div>
+
+        <div>
+            <button
+              class="btn"
+              type="submit"
+              :class="passwordSuccessMessage ? 'btn-success' : 'btn-primary'"
+              :disabled="passwordSuccessMessage"
+            >
+              {% raw %}
+              {{ passwordSuccessMessage || 'Change Password' }}
+              {% endraw %}
+            </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+

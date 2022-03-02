@@ -1,0 +1,33 @@
+server {
+    listen  80;
+    listen  [::]:80;
+    server_name {{ domain }};
+    return 301 https://{{ domain }}$request_uri;
+}
+
+server {
+    listen       443 ssl;
+    listen       [::]:443 ssl;
+    server_name  {{ domain }};
+
+    ssl_certificate /etc/letsencrypt/live/matzradloff.info/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/matzradloff.info/privkey.pem;
+
+    access_log /var/log/nginx/{{ domain }}/access.log;
+    error_log /var/log/nginx/{{ domain }}/error.log;
+
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload";
+    add_header X-Frame-Options SAMEORIGIN;
+    add_header X-Content-Type-Options nosniff;
+    add_header Referrer-Policy same-origin;
+
+    # location /dist/ {
+    #     alias {{ app_path }}/frontend/dist/;
+    # }
+
+    location / {
+        include     uwsgi_params;
+        uwsgi_pass  unix:/run/uwsgi/{{ app_name }}.sock;
+
+    }
+}

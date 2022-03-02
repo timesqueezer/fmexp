@@ -1,0 +1,13 @@
+flask
+Flask-WTF
+Flask-SQLAlchemy
+Flask-Migrate
+wtforms[email]
+
+psycopg2
+
+python-dateutil
+
+git+https://github.com/timesqueezer/flask-jwt-next.git
+PyJWT
+flask-scrypt
