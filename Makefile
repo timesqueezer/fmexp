@@ -12,8 +12,23 @@ flask-run:
 flask-shell:
 	FLASK_ENV=development FLASK_APP=fmexp env/bin/flask shell
 
-frontend1:
-	cd fmexp/templates/frontend; yarn build-frontend1
+frontend:
+	cd fmexp/templates/frontend; yarn
 
-frontend2:
-	cd fmexp/templates/frontend; yarn build-frontend2
+fmexp1-frontend:
+	cd fmexp/templates/frontend; yarn build-frontend1-production
+
+fmexp2-frontend:
+	cd fmexp/templates/frontend; yarn build-frontend2-production
+
+provision-layout1:
+	ansible-playbook ansible/provision-layout1
+
+provision-layout2:
+	ansible-playbook ansible/provision-layout2
+
+deploy-layout1:
+	ansible-playbook ansible/deploy-layout1
+
+deploy-layout2:
+	ansible-playbook ansible/deploy-layout2

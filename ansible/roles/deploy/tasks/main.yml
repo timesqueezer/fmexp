@@ -4,7 +4,7 @@
   register: gitstatus
   git: accept_hostkey=yes
        force=yes
-       repo=git@gitub.com:timesqueezer/portfolio.git
+       repo=git@gitub.com:timesqueezer/fmexp.git
        dest={{ app_path }}
 
 - name: ensure the directory is owned by matz but writable by the http group
@@ -20,7 +20,7 @@
   command: /usr/bin/make frontend chdir={{ app_path }}
 
 - name: build frontend
-  command: /usr/bin/make frontend-build chdir={{ app_path }}
+  command: /usr/bin/make {{ app_name }}-frontend chdir={{ app_path }}
 
 - name: touch uwsgi vassal
-  file: state=touch path=/etc/uwsgi/vassals/portfolio.ini
+  file: state=touch path=/etc/uwsgi/vassals/{{ app_name }}.ini
