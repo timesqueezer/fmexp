@@ -33,6 +33,8 @@ class User(db.Model):
 
     logged_in = db.Column(db.Boolean, nullable=False, default=False)
 
+    is_bot = db.Column(db.Boolean, nullable=False, default=False)
+
     @property
     def id(self):
         return str(self.uuid)
@@ -74,6 +76,11 @@ class DataPointDataType(IntEnum):
     REQUEST = 1
     MOUSE = 2
 
+
+class DataPointUserType(IntEnum):
+    HUMAN = 1
+    BOT = 2
+
 class DataPoint(db.Model):
     __tablename__ = 'data_points'
 
@@ -85,11 +92,13 @@ class DataPoint(db.Model):
     user = db.relationship('User', backref='datapoints')
 
     data_type = db.Column(db.Integer, nullable=False, default=DataPointDataType.REQUEST.value)
+    user_type = db.Column(db.Integer, nullable=False, default=DataPointUserType.HUMAN.value)
 
     data = db.Column(JSONB)
 
-    def __init__(self, created, user_uuid, data_type, data):
+    def __init__(self, created, user_uuid, data_type, user_type, data):
         self.created = created
         self.user_uuid = user_uuid
         self.data_type = data_type
+        self.user_type = user_type
         self.data = data

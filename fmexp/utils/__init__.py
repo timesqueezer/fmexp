@@ -7,6 +7,7 @@ from urllib.parse import urlparse, urljoin
 
 from flask import render_template, current_app, request
 
+from fmexp.extensions import db
 from fmexp.models import User
 
 
@@ -46,3 +47,12 @@ def random_date():
     int_delta = (delta.days * 24 * 60 * 60) + delta.seconds
     random_second = randrange(int_delta)
     return start + timedelta(seconds=random_second)
+
+
+def fast_query_count(q):
+    '''
+    https://gist.github.com/hest/8798884
+    '''
+    count_q = q.statement.with_only_columns([db.func.count()]).order_by(None)
+    count = q.session.execute(count_q).scalar()
+    return count

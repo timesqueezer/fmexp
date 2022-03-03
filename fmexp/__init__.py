@@ -3,13 +3,14 @@ import os
 # import click
 from flask import Flask
 
+import fmexp.login
+import fmexp.request_logger
 from fmexp.extensions import (
     db,
     migrate,
     jwt,
 )
-import fmexp.login
-import fmexp.request_logger
+from fmexp.models import User
 
 
 def create_app(

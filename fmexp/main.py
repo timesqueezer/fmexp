@@ -19,7 +19,9 @@ from fmexp.models import (
     DataPoint,
     User,
     DataPointDataType,
+    DataPointUserType,
 )
+from fmexp.stats import get_stats
 from fmexp.utils import (
     render_template_fmexp,
     json_response,
@@ -52,10 +54,13 @@ def data_capture():
     for dp in payload['data']:
         created = datetime.utcnow()
 
+        user_type = DataPointUserType.BOT.value if request.cookies.get('fmexp_bot') else DataPointUserType.HUMAN.value
+
         new_datapoint = DataPoint(
             created,
             payload['meta']['user_uuid'],
             DataPointDataType.MOUSE.value,
+            user_type,
             dp['data'],
         )
         db.session.add(new_datapoint)
@@ -134,6 +139,17 @@ def password():
         'errors': user_change_password_form.errors,
         'form_errors': user_change_password_form.form_errors,
     }, 400)
+
+
+@main.route('/content/admin')
+@jwt_required()
+def admin():
+    if current_identity.email != 'matzradloff@gmail.com':
+        abort(401)
+
+    stats = get_stats()
+
+    return render_template_fmexp('admin.html', stats=stats)
 
 
 @main.route('/dist')

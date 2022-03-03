@@ -107,6 +107,11 @@
   >
     <div class="container">
       <span>&copy; 2022 Matz Radloff</span>
+      <router-link
+        v-if="currentUser && currentUser.email === 'matzradloff@gmail.com'"
+        to="/admin"
+        class="btn btn-outline-secondary ms-4"
+      >Admin</router-link>
     </div>
   </footer>
 </template>

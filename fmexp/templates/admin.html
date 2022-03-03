@@ -1,0 +1,30 @@
+<div class="col-xs-12 col-md-10 col-lg-8 mx-auto">
+  <div class="bg-white shadow-sm p-3 p-sm-5 article">
+    <h2 class="mb-2">Admin</h2>
+
+    Stats:
+
+    <table
+      class="table table-striped"
+      :class="layout === 'layout1' ? '' : 'table-dark'"
+    >
+      <thead>
+        <tr>
+          <th scope="col">What</th>
+          <th scope="col">Humans</th>
+          <th scope="col">Bots</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for stat in stats %}
+        <tr>
+          <th scope="row">{{ stat.name }}</th>
+          <td>{{ stat.count_human }}</td>
+          <td>{{ stat.count_bot }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  </div>
+</div>
