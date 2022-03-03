@@ -1,12 +1,15 @@
 import os
 
+# import click
 from flask import Flask
+
 from fmexp.extensions import (
     db,
     migrate,
     jwt,
 )
 import fmexp.login
+import fmexp.request_logger
 
 
 def create_app(
@@ -24,5 +27,9 @@ def create_app(
 
     from fmexp.main import main
     app.register_blueprint(main)
+
+    @app.cli.command('create-tables')
+    def create_tables():
+        db.create_all()
 
     return app

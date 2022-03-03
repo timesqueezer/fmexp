@@ -26,9 +26,10 @@ export default class InputRecorder {
       this.userUUID = alreadySetUserUUID
 
     } else {
-      const response = await axios.post('/user-uuid')
+      console.warn('UUID Cookie not set!')
+      /* const response = await axios.post('/user-uuid')
       this.userUUID = response.data.user_uuid
-      Cookies.set('user_uuid', this.userUUID)
+      Cookies.set('user_uuid', this.userUUID) */
 
     }
   }
@@ -40,9 +41,12 @@ export default class InputRecorder {
   }
 
   addEventListener(eventType, fn, throttled) {
+    const maxEventsPerSecond = 30
+    const timeout = 1000 / maxEventsPerSecond
+
     document.addEventListener(
       eventType,
-      throttled ? throttle(fn.bind(this), 50) : fn.bind(this),
+      throttled ? throttle(fn.bind(this), timeout) : fn.bind(this),
       { passive: true },
     )
   }
@@ -81,9 +85,9 @@ export default class InputRecorder {
     this.pushEvent({
       type: 'move',
       position: { x: e.clientX, y: e.clientY },
-      positionAbsolute: { x: e.pageX, y: e.pageY },
+      position_absolute: { x: e.pageX, y: e.pageY },
       screen: { width: e.view.innerWidth, height: e.view.innerHeight },
-      pointerType: e.pointerType,
+      pointer_type: e.pointerType,
     })
   }
 
@@ -91,9 +95,9 @@ export default class InputRecorder {
     this.pushEvent({
       type: 'pointerdown',
       position: { x: e.clientX, y: e.clientY },
-      positionAbsolute: { x: e.pageX, y: e.pageY },
+      position_absolute: { x: e.pageX, y: e.pageY },
       screen: { width: e.view.innerWidth, height: e.view.innerHeight },
-      pointerType: e.pointerType,
+      pointer_type: e.pointerType,
       buttons: e.buttons,
     })
   }
@@ -102,9 +106,9 @@ export default class InputRecorder {
     this.pushEvent({
       type: 'pointerdown',
       position: { x: e.clientX, y: e.clientY },
-      positionAbsolute: { x: e.pageX, y: e.pageY },
+      position_absolute: { x: e.pageX, y: e.pageY },
       screen: { width: e.view.innerWidth, height: e.view.innerHeight },
-      pointerType: e.pointerType,
+      pointer_type: e.pointerType,
       buttons: e.buttons,
     })
   }

@@ -1,5 +1,6 @@
 import uuid
 import json
+from enum import IntEnum
 
 from flask_scrypt import generate_random_salt, generate_password_hash, check_password_hash
 
@@ -68,6 +69,11 @@ class User(db.Model):
 
         return data
 
+
+class DataPointDataType(IntEnum):
+    REQUEST = 1
+    MOUSE = 2
+
 class DataPoint(db.Model):
     __tablename__ = 'data_points'
 
@@ -78,9 +84,12 @@ class DataPoint(db.Model):
     user_uuid = db.Column(UUID(as_uuid=True), db.ForeignKey('users.uuid'), nullable=False)
     user = db.relationship('User', backref='datapoints')
 
+    data_type = db.Column(db.Integer, nullable=False, default=DataPointDataType.REQUEST.value)
+
     data = db.Column(JSONB)
 
-    def __init__(self, created, user_uuid, data):
+    def __init__(self, created, user_uuid, data_type, data):
         self.created = created
         self.user_uuid = user_uuid
+        self.data_type = data_type
         self.data = data

@@ -6,6 +6,7 @@
     - app_name: fmexp-layout1
     - app_path: /srv/http/{{ app_name }}
     - instance_path: /var/{{ app_name }}
+    - reset_db: true
 
   roles:
     - deploy

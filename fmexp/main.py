@@ -1,7 +1,8 @@
 import os
 import uuid
 
-from dateutil.parser import parse
+# from dateutil.parser import parse
+from datetime import datetime
 
 from flask import Blueprint, send_file, request, abort
 from flask_jwt_next import current_identity, jwt_required
@@ -11,7 +12,11 @@ from fmexp.forms import (
     UserProfileForm,
     UserChangePasswordForm,
 )
-from fmexp.models import DataPoint, User
+from fmexp.models import (
+    DataPoint,
+    User,
+    DataPointDataType,
+)
 from fmexp.utils import (
     render_template_fmexp,
     json_response,
@@ -27,25 +32,6 @@ def index(path=None):
     return render_template_fmexp('index.html')
 
 
-@main.route('/user-uuid', methods=['POST'])
-def user_uuid():
-    if current_identity:
-        return { 'user_uuid': str(current_identity.uuid) }
-
-    already_set_uuid = request.cookies.get('user_uuid')
-    if already_set_uuid:
-        return { 'user_uuid': already_set_uuid }
-
-    # new_user_uuid = uuid.uuid4()
-    new_user = User()
-    db.session.add(new_user)
-    db.session.commit()
-
-    new_user_uuid = new_user.uuid
-
-    return { 'user_uuid': str(new_user_uuid) }
-
-
 @main.route('/data-capture', methods=['POST'])
 def data_capture():
     payload = request.get_json()
@@ -58,9 +44,14 @@ def data_capture():
         abort(400)
 
     for dp in payload['data']:
-        created = parse(dp['dt'])
+        created = datetime.utcnow()
 
-        new_datapoint = DataPoint(created, payload['meta']['user_uuid'], dp['data'])
+        new_datapoint = DataPoint(
+            created,
+            payload['meta']['user_uuid'],
+            DataPointDataType.MOUSE.value,
+            dp['data'],
+        )
         db.session.add(new_datapoint)
 
     db.session.commit()

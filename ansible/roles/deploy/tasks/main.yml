@@ -22,11 +22,19 @@
 - name: build frontend
   command: /usr/bin/make {{ app_name }}-frontend chdir={{ app_path }}
 
+- name: reset database
+  command: chdir={{ app_path }} /usr/bin/bash reset-db.sh
+  environment:
+    FLASK_APP: fmexp
+    FMEXP_INSTANCE_PATH: '{{ instance_path }}'
+  when: reset_db
+
 - name: migrate database
   command: chdir={{ app_path }} env/bin/flask db upgrade
   environment:
     FLASK_APP: fmexp
     FMEXP_INSTANCE_PATH: '{{ instance_path }}'
+  when: not reset_db
   register: migrate
 
 - debug: msg="{{ item }}"
