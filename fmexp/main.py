@@ -1,8 +1,11 @@
 import os
 import uuid
+import random
 
 # from dateutil.parser import parse
 from datetime import datetime
+
+from faker import Faker
 
 from flask import Blueprint, send_file, request, abort
 from flask_jwt_next import current_identity, jwt_required
@@ -20,10 +23,13 @@ from fmexp.models import (
 from fmexp.utils import (
     render_template_fmexp,
     json_response,
+    random_date,
 )
 
 
 main = Blueprint('main', __name__, template_folder='templates', static_folder='static')
+
+fake = Faker()
 
 
 @main.route('/')
@@ -61,7 +67,12 @@ def data_capture():
 
 @main.route('/content/blog')
 def blog():
-    return render_template_fmexp('blog.html')
+    return render_template_fmexp('blog.html', fake=fake, random=random, random_date=random_date)
+
+
+@main.route('/content/blog-entry/<path:path>')
+def blog_entry(path=None):
+    return render_template_fmexp('blog_entry.html', fake=fake, random=random, random_date=random_date)
 
 
 @main.route('/content/home')

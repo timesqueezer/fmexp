@@ -14,6 +14,8 @@ export default {
   },
   data() {
     return {
+      layout: FMEXP_LAYOUT,
+
       content: '',
       errorMessage: null,
       currentUser: null,

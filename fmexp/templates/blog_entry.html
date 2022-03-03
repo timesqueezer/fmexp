@@ -1,0 +1,33 @@
+<div class="col-xs-12 col-md-10 col-lg-8 mx-auto">
+  <div
+    class="mb-4"
+    :class="layout === 'layout1' ? 'rounded bg-white shadow-sm' : 'text-white bg-dark'"
+  >
+    <div class="row mx-0">
+      <div class="col-md-8 px-0 p-4 p-md-5">
+        <strong
+          class="
+            d-inline-block mb-2
+            text-{{ random.choice(['primary', 'success', 'info', 'warning', 'danger']) }}
+          "
+        >{{ fake.word().capitalize() }}</strong>
+        <div class="mb-1 text-muted">{{ random_date().strftime('%x') }}</div>
+        <h1 class="display-6">{{ fake.sentence(random.randint(4, 7)).capitalize() }}</h1>
+      </div>
+      <div class="col-md-4 px-0 order-md-2 order-xs-1">
+        <img class="img-fluid" src="//picsum.photos/id/{{ random.randint(1, 512) }}/800">
+      </div>
+    </div>
+  </div>
+  <div
+    class="shadow-sm p-3 p-sm-5 article"
+    :class="layout === 'layout1' ? 'bg-white rounded' : 'bg-dark'"
+  >
+    {% for i in range(random.randint(5, 10)) %}
+    <h2 class="mb-2">{{ fake.sentence(random.randint(3, 6)) }}</h2>
+    {% for j in range(random.randint(1, 3)) %}
+    <p>{{ fake.paragraph(random.randint(4, 10)) }}</p>
+    {% endfor %}
+    {% endfor %}
+  </div>
+</div>

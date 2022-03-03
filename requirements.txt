@@ -11,3 +11,5 @@ python-dateutil
 git+https://github.com/timesqueezer/flask-jwt-next.git
 PyJWT
 flask-scrypt
+
+Faker

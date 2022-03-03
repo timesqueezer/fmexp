@@ -1,3 +1,6 @@
+from random import randrange
+from datetime import timedelta, datetime
+
 import json
 from uuid import UUID
 from urllib.parse import urlparse, urljoin
@@ -34,3 +37,12 @@ def load_cookie_user():
         return None
 
     return User.query.filter_by(uuid=UUID(user_uuid)).first()
+
+
+def random_date():
+    end = datetime.utcnow()
+    start = datetime(2000, 1, 1, 0, 0, 0)
+    delta = end - start
+    int_delta = (delta.days * 24 * 60 * 60) + delta.seconds
+    random_second = randrange(int_delta)
+    return start + timedelta(seconds=random_second)
