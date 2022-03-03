@@ -32,3 +32,11 @@ deploy-layout1:
 
 deploy-layout2:
 	ansible-playbook -i ansible/hosts ansible/deploy-layout2.yml
+
+provision-all:
+	ansible-playbook -i ansible/hosts ansible/provision-layout1.yml
+	ansible-playbook -i ansible/hosts ansible/provision-layout2.yml
+
+deploy-all:
+	ansible-playbook -i ansible/hosts ansible/deploy-layout1.yml &
+	ansible-playbook -i ansible/hosts ansible/deploy-layout2.yml
