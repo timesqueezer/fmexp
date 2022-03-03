@@ -1,28 +1,2 @@
-h1, h2, h3, h4, h5, h6 {
-    font-weight: 600;
-    font-stretch: 75%;
-}
-
-.article {
-
-    p {
-        text-align: justify;
-        font-size: 1rem;
-        line-height: 1.5;
-        letter-spacing: -0.1px;
-        margin-bottom: 1.5em;
-    }
-
-    @media (min-width: 576px) {
-        .column-2 {
-            column-count: 2;
-            column-gap: 2em;
-
-            .column-span-all {
-                column-span: all;
-            }
-        }
-    }
-}
 
 @import "node_modules/bootstrap/scss/bootstrap";

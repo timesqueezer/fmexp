@@ -4,7 +4,7 @@ const baseConfig = require('./webpack.config.js')
 
 baseConfig.plugins.push(
     new webpack.DefinePlugin({
-        FMEXP_LAYOUT: 'layout2',
+        FMEXP_LAYOUT: JSON.stringify('layout2'),
     })
 )
 

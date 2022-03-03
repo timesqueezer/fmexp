@@ -25,8 +25,6 @@ def fmexp_after_request(response):
 
         response.set_cookie('user_uuid', user_uuid)
 
-    print('hmmmm', request.path)
-
     data = {
         'request': {},
         'response': {},

@@ -11,6 +11,7 @@ export default {
   },
   data() {
     return {
+      layout: FMEXP_LAYOUT,
     }
   },
   mounted() {},
@@ -26,11 +27,20 @@ export default {
 </script>
 
 <template>
-  <nav class="navbar navbar-expand-md navbar-light bg-light shadow-sm">
+  <nav
+    class="navbar navbar-expand-md shadow-sm"
+    :class="layout === 'layout1' ? 'navbar-light bg-light' : 'navbar-dark border-bottom'"
+  >
     <div class="container">
       <h4 class="m-0">
-        <router-link class="navbar-brand badge badge-lg bg-warning" to="/" active-class="active">
-          <span class="">FM Exp 1</span>
+        <router-link
+          class=""
+          to="/"
+          active-class="active"
+          :class="layout === 'layout1' ? 'navbar-brand badge badge-lg bg-warning' : 'me-5'"
+        >
+          <span v-if="layout === 'layout1'" class="">FM Exp 1</span>
+          <span v-if="layout === 'layout2'" class="">FM Exp 2</span>
         </router-link>
       </h4>
 

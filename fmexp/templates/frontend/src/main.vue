@@ -13,6 +13,8 @@
     },
     data() {
       return {
+        layout: FMEXP_LAYOUT,
+
         loading: true,
         showConsentAlert: false,
 
@@ -99,7 +101,10 @@
     </div>
   </main>
 
-  <footer class="mt-auto bg-light py-3 shadow-sm border-top">
+  <footer
+    class="mt-auto py-3 shadow-sm border-top"
+    :class="layout === 'layout1' ? 'bg-light' : 'text-center'"
+  >
     <div class="container">
       <span>&copy; 2022 Matz Radloff</span>
     </div>

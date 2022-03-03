@@ -9,7 +9,8 @@
     "build-frontend1-production": "webpack --no-devtool --mode production --config config/frontend1.config.js",
     "build-frontend2": "webpack --mode development --config config/frontend2.config.js",
     "build-frontend2-production": "webpack --no-devtool --mode production --config config/frontend2.config.js",
-    "build-watch": "webpack --watch --config config/frontend1.config.js"
+    "build-watch": "webpack --watch --config config/frontend1.config.js",
+    "build-watch-frontend2": "webpack --watch --config config/frontend2.config.js"
   },
   "devDependencies": {
     "@babel/core": "^7.17.5",

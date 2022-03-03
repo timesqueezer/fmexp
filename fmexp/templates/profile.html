@@ -3,7 +3,7 @@
     <div class="bg-light shadow-sm p-4">
       <h2 class="mb-3">Edit Profile</h2>
 
-      <form method="POST" @submit.prevent="editProfile">
+      <form method="POST" @submit.prevent="editProfile('profile', $event)" name="editProfile">
         {{ user_profile_form.csrf_token }}
         <div class="row">
           <div class="col-sm-12 col-md-6">
@@ -162,7 +162,7 @@
       <hr class="my-4">
 
       <h2 class="mb-3">Change Password</h2>
-      <form method="POST" @submit.prevent="editProfile">
+      <form method="POST" @submit.prevent="editProfile('password', $event)" name="editPassword">
         {{ user_change_password_form.csrf_token(id='csrf_token_change_password') }}
         <div class="form-floating mb-3">
           {{

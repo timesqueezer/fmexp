@@ -54,3 +54,7 @@ class UserProfileForm(FlaskForm):
 class UserChangePasswordForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired(), Length(min=8)])
     password2 = PasswordField('Repeat Password', validators=[DataRequired(), Length(min=8)])
+
+    def validate_password2(form, field):
+        if field.data != form.password.data:
+            raise ValidationError('Passwords do not match')

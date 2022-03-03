@@ -1,0 +1,75 @@
+@import "montserrat";
+
+@import "../../node_modules/bootstrap/scss/functions";
+
+
+$enable-shadows: false;
+$enable-rounded: false;
+$enable-gradients: false;
+
+$body-bg: #15181e;
+// $body-bg: #2D3B3D;
+$body-color: #fafcff;
+// $light: tint-color($body-bg, 20%);
+// $light: rgba(255, 255, 255, 0.1);
+
+$spacer: 1.5rem;
+
+$primary: #B8F4FC;
+$secondary: #B8F4FC;
+$info: #6DECFD;
+$success: #ACFCD9;
+$warning: #FD9F79;
+$danger: #C98A7F;
+
+$font-family-base: 'Montserrat';
+
+$input-bg: tint-color($body-bg, 30%);
+$form-check-input-width: 1.5em;
+
+$navbar-padding-y: 2rem;
+
+$form-check-input-checked-color: $body-bg;
+
+
+
+.nav-link {
+  font-size: 1.25rem;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 200 !important;
+}
+
+.article {
+  p {
+    text-align: justify;
+    font-size: 1rem;
+    line-height: 1.5;
+    letter-spacing: -0.5px;
+    margin-bottom: 1.5em;
+    font-weight: 350;
+  }
+
+  @media (min-width: 576px) {
+      .column-2 {
+        column-count: 2;
+        column-gap: 2em;
+
+        .column-span-all {
+          column-span: all;
+        }
+      }
+  }
+}
+
+@import "./custom.scss";
+
+.bg-white {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  // background-color: transparent !important;
+}
+
+.bg-light {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}

@@ -105,7 +105,7 @@ export default {
 
       }
 
-      this.$router.replace('/')
+      this.$router.replace('/profile')
 
     },
     setCustomValidities(errors) {
@@ -145,7 +145,7 @@ export default {
           await this.loginAs(data.email, data.password)
           this.$emit('set-user', responseData)
           this.currentUser = responseData
-          this.$router.replace('/')
+          this.$router.replace('/profile')
 
         } else {
           if (responseData.errors) {
@@ -160,14 +160,16 @@ export default {
 
       }*/
     },
-    async editProfile(e) {
+    async editProfile(editMode, e) {
       this.errorMessage = null
 
       const formData = new FormData(e.target)
       const data = Object.fromEntries(formData.entries())
 
+      const url = editMode === 'profile' ? '/user' : '/password'
+
       const response = await fetch(
-        '/user',
+        url,
         {
           method: 'POST',
           body: formData,
@@ -181,15 +183,22 @@ export default {
 
       })
 
-      // try {
-        const responseData = await response.json()
 
-        if (response.status == 200) {
-          this.loadSite()
-          this.showSuccessMessage('profileSuccessMessage', 'Profile saved')
-          this.$emit('set-user', responseData)
+      // try {
+        if (response.status === 200 || response.status === 204) {
+          if (editMode === 'profile') {
+            const responseData = await response.json()
+            this.loadSite()
+            this.showSuccessMessage('profileSuccessMessage', 'Profile saved')
+            this.$emit('set-user', responseData)
+
+          } else {
+            this.showSuccessMessage('passwordSuccessMessage', 'Password saved')
+
+          }
 
         } else {
+          const responseData = await response.json()
           if (responseData.errors) {
             this.setCustomValidities(responseData.errors)
 

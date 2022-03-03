@@ -69,6 +69,11 @@ def home():
     return render_template_fmexp('home.html')
 
 
+@main.route('/content/contact')
+def contact():
+    return render_template_fmexp('contact.html')
+
+
 @main.route('/content/profile')
 @jwt_required()
 def profile():
@@ -102,6 +107,22 @@ def user():
             'errors': user_profile_form.errors,
             'form_errors': user_profile_form.form_errors,
         }, 400)
+
+
+@main.route('/password', methods=['POST'])
+@jwt_required()
+def password():
+    user_change_password_form = UserChangePasswordForm()
+    if user_change_password_form.validate_on_submit():
+        current_identity.set_password(user_change_password_form.password.data)
+        db.session.commit()
+
+        return '', 204
+
+    return json_response({
+        'errors': user_change_password_form.errors,
+        'form_errors': user_change_password_form.form_errors,
+    }, 400)
 
 
 @main.route('/dist')
