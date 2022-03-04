@@ -56,6 +56,7 @@ class User(db.Model):
     def get_json(self):
         data = {}
         for attr in [
+            'uuid',
             'email',
             'first_name',
             'last_name',
@@ -67,7 +68,8 @@ class User(db.Model):
             'state',
             'country',
         ]:
-            data[attr] = str(getattr(self, attr))
+            d = getattr(self, attr)
+            data[attr] = str(d) if d else d
 
         return data
 

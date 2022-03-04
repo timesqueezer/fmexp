@@ -61,6 +61,7 @@
       },
       setUser(user) {
         this.currentUser = user
+        Cookies.set('user_uuid', user.uuid)
       },
       async consent() {
         window.localStorage.setItem('fmexp_consent', true)

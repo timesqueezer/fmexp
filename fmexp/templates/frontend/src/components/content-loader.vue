@@ -101,8 +101,9 @@ export default {
 
       await this.loginAs(data.email.toLowerCase(), data.password)
       const currentUserResponse = await axios.get('/user')
+
       if (currentUserResponse) {
-        this.$emit('set-user', currentUserResponse)
+        this.$emit('set-user', currentUserResponse.data)
         this.currentUser = currentUserResponse.data
 
       }

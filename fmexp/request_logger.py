@@ -15,6 +15,9 @@ from fmexp.models import (
 
 @main.after_request
 def fmexp_after_request(response):
+    if '/admin' in request.url:
+        return response
+
     user_uuid = request.cookies.get('user_uuid')
 
     is_bot = bool(request.cookies.get('fmexp_bot')) or request.args.get('fmexp_bot')
