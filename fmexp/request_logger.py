@@ -17,9 +17,11 @@ from fmexp.models import (
 def fmexp_after_request(response):
     user_uuid = request.cookies.get('user_uuid')
 
+    is_bot = bool(request.cookies.get('fmexp_bot')) or request.args.get('fmexp_bot')
+
     if not user_uuid:
         new_user = User()
-        if request.cookies.get('fmexp_bot'):
+        if is_bot:
             new_user.is_bot = True
 
         db.session.add(new_user)
@@ -48,7 +50,7 @@ def fmexp_after_request(response):
     data['response']['date'] = str(response.date)
     data['response']['status_code'] = response.status_code
 
-    user_type = DataPointUserType.BOT.value if request.cookies.get('fmexp_bot') else DataPointUserType.HUMAN.value
+    user_type = DataPointUserType.BOT.value if is_bot else DataPointUserType.HUMAN.value
 
     dp = DataPoint(
         datetime.utcnow(),

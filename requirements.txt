@@ -13,3 +13,5 @@ PyJWT
 flask-scrypt
 
 Faker
+
+selenium
