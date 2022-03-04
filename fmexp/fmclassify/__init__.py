@@ -9,7 +9,7 @@ from pprint import pprint
 
 class FMClassifier:
     def __init__(self):
-        self.clf = RandomForestClassifier(max_depth=2, random_state=0)
+        self.clf = RandomForestClassifier(max_depth=1, random_state=0)
 
     def load_data(self):
         from fmexp.models import (
@@ -25,7 +25,7 @@ class FMClassifier:
         q = User.query
 
         X = [u.get_accumulated_request_features() for u in q]
-        y = [u.is_bot for u in q]
+        y = [1.0 if u.is_bot else 0.0 for u in q]
 
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
             X, y, test_size=0.1, random_state=42
