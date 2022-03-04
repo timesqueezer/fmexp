@@ -5,6 +5,8 @@ class Bot:
     def __init__(self, target_host):
         self.driver = webdriver.Firefox()
         self.driver.set_window_size(1200, 800)
+        self.driver.implicitly_wait(2)
+
         self.target_host = target_host
 
         # need first request to be able to set cookie

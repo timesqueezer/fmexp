@@ -10,7 +10,7 @@ from faker import Faker
 from flask import Blueprint, send_file, request, abort
 from flask_jwt_next import current_identity, jwt_required
 
-from fmexp.extensions import db
+from fmexp.extensions import db, fmclassifier
 from fmexp.forms import (
     UserProfileForm,
     UserChangePasswordForm,
@@ -109,7 +109,7 @@ def user():
         if not current_identity or not current_identity.is_active:
             abort(400)
 
-        return json_response(current_identity.get_json())
+        return json_response(current_identity.to_dict())
 
     elif request.method == 'POST':
         user_profile_form = UserProfileForm()
@@ -117,7 +117,7 @@ def user():
             user_profile_form.populate_obj(current_identity)
             db.session.commit()
 
-            return json_response(current_identity.get_json())
+            return json_response(current_identity.to_dict())
 
         return json_response({
             'errors': user_profile_form.errors,
@@ -150,6 +150,18 @@ def admin():
     stats = get_stats()
 
     return render_template_fmexp('admin.html', stats=stats)
+
+
+@main.route('/admin/train-model', methods=['POST'])
+@jwt_required()
+def admin_train_model():
+    if current_identity.email != 'matzradloff@gmail.com':
+        abort(401)
+
+    fmclassifier.load_data()
+    fmclassifier.train_model()
+
+    return '', 204
 
 
 @main.route('/dist')

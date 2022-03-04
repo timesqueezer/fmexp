@@ -1,9 +1,13 @@
-
+from uuid import UUID
 from datetime import datetime
 
-from flask import request, g
+from sklearn.exceptions import NotFittedError
+from sklearn.utils.validation import check_is_fitted
 
-from fmexp.extensions import db
+from flask import request, g
+from flask_jwt_next import current_identity
+
+from fmexp.extensions import db, fmclassifier
 from fmexp.main import main
 from fmexp.models import (
     DataPoint,
@@ -64,5 +68,16 @@ def fmexp_after_request(response):
     )
     db.session.add(dp)
     db.session.commit()
+
+    if user_uuid:
+        try:
+            u = User.query.filter_by(uuid=UUID(user_uuid)).first()
+            # fmclassifier.train_model()
+            prediction = fmclassifier.predict(u)[0]
+            print('PREDICTION', prediction)
+            response.headers['fmexp-is-bot'] = str(prediction)
+
+        except NotFittedError:
+            print('Model not fitted, skipping')
 
     return response

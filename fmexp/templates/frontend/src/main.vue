@@ -20,6 +20,8 @@
 
         inputRecorder: null,
         currentUser: null,
+
+        isBot: null,
       }
     },
     async created() {
@@ -68,6 +70,9 @@
         await this.init()
         this.showConsentAlert = false
       },
+      updateIsBot(isBot) {
+        this.isBot = isBot
+      },
     }
   }
 </script>
@@ -96,6 +101,7 @@
         <router-view
           :user="currentUser"
           @set-user="setUser"
+          @update-is-bot="updateIsBot"
         ></router-view>
 
       </div>
@@ -113,6 +119,9 @@
         to="/admin"
         class="btn btn-outline-secondary ms-4"
       >Admin</router-link>
+      <span class="ms-4">
+        Is Bot: <span id="is-bot">{{ isBot }}</span>
+      </span>
     </div>
   </footer>
 </template>

@@ -1,12 +1,15 @@
 import uuid
 import json
+
 from enum import IntEnum
+from datetime import datetime
 
 from flask_scrypt import generate_random_salt, generate_password_hash, check_password_hash
 
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 from fmexp.extensions import db
+from fmexp.utils import fast_query_count
 
 
 class User(db.Model):
@@ -53,7 +56,7 @@ class User(db.Model):
 
         return check_password_hash(password, self.password_hash, self.password_salt)
 
-    def get_json(self):
+    def to_dict(self):
         data = {}
         for attr in [
             'uuid',
@@ -70,6 +73,54 @@ class User(db.Model):
         ]:
             d = getattr(self, attr)
             data[attr] = str(d) if d else d
+
+        return data
+
+    def get_accumulated_request_features(self):
+        data = []
+
+        request_data_point_q = DataPoint.query.filter_by(
+            user_uuid=self.uuid,
+            data_type=DataPointDataType.REQUEST.value,
+        )
+
+        total_count = fast_query_count(request_data_point_q)
+
+        # Feature 1: 4xx percentage
+        http_400_count = fast_query_count(
+            request_data_point_q.filter(
+                DataPoint.data[('response', 'status_code')].as_integer().between(400, 500)
+            )
+        )
+        data.append(http_400_count / total_count)
+
+        # Feature 2: css percentage
+        css_count = fast_query_count(
+            request_data_point_q.filter(DataPoint.data[('response', 'content_type')].astext == 'text/css; charset=utf-8')
+        )
+        data.append(css_count / total_count)
+
+        # Feature 3: js percentage
+        js_count = fast_query_count(
+            request_data_point_q.filter(DataPoint.data['response']['content_type'].astext == 'application/javascript; charset=utf-8')
+        )
+        data.append(js_count / total_count)
+
+        # Feature 4: requests with previous requested url as part
+        previous_count = 0
+        previous_dp_url = None
+        for dp in request_data_point_q.order_by(DataPoint.created):
+            if previous_dp_url and previous_dp_url in dp.data['request']['path']:
+                previous_count += 1
+
+            previous_dp_url = dp.data['request']['path']
+
+        data.append(previous_count / total_count)
+
+        # Feature 5:
+        first_dp = request_data_point_q.order_by(DataPoint.created).first()
+        last_dp = request_data_point_q.order_by(DataPoint.created.desc()).first()
+        data.append((last_dp.created - first_dp.created).seconds)
 
         return data
 
@@ -104,3 +155,17 @@ class DataPoint(db.Model):
         self.data_type = data_type
         self.user_type = user_type
         self.data = data
+
+    def to_dict(self):
+        data = {}
+        data['created'] = datetime.timestamp(self.created)
+        data['user_type'] = self.user_type
+
+        if self.data_type == DataPointDataType.REQUEST.value:
+            for k, v in self.data['request'].items():
+                if k == 'origin' or not v:
+                    continue
+
+                data['request_' + k] = v
+
+        return data

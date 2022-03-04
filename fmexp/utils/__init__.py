@@ -7,9 +7,6 @@ from urllib.parse import urlparse, urljoin
 
 from flask import render_template, current_app, request
 
-from fmexp.extensions import db
-from fmexp.models import User
-
 
 def render_template_fmexp(template_name, **kwargs):
     layout_name = current_app.config.get('LAYOUT_NAME', 'layout1')
@@ -33,6 +30,8 @@ def json_response(data, status_code=200):
 
 
 def load_cookie_user():
+    from fmexp.models import User
+
     user_uuid = request.cookies.get('user_uuid')
     if not user_uuid:
         return None
@@ -50,6 +49,7 @@ def random_date():
 
 
 def fast_query_count(q):
+    from fmexp.extensions import db
     '''
     https://gist.github.com/hest/8798884
     '''

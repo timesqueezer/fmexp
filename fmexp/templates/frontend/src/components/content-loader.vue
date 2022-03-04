@@ -22,6 +22,8 @@ export default {
 
       profileSuccessMessage: null,
       passwordSuccessMessage: null,
+
+      adminTrainLoading: false,
     }
   },
   created() {
@@ -61,6 +63,9 @@ export default {
 
       } else {
         const response = await axios.get('/content' + path)
+        if (response.headers['fmexp-is-bot']) {
+          this.$emit('update-is-bot', response.headers['fmexp-is-bot'])
+        }
         this.content = response.data
 
       }
@@ -211,6 +216,11 @@ export default {
     },
     resetValidity(e) {
       e.target.setCustomValidity('')
+    },
+    async adminTrainModel() {
+      this.adminTrainLoading = true
+      await axios.post('/admin/train-model')
+      this.adminTrainLoading = false
     },
   }
 }

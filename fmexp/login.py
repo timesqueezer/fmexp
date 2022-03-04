@@ -47,7 +47,7 @@ def auth_response_handler(access_token, identity):
 def register():
     user = load_cookie_user()
     if user and user.is_active:
-        return json_response(user.get_json())
+        return json_response(user.to_dict())
 
     form = UserRegisterForm()
     if form.validate_on_submit():
@@ -56,7 +56,7 @@ def register():
 
         db.session.commit()
 
-        return json_response(user.get_json())
+        return json_response(user.to_dict())
 
     return json_response({
         'errors': form.errors,

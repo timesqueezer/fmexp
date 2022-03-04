@@ -9,6 +9,7 @@ from fmexp.extensions import (
     db,
     migrate,
     jwt,
+    fmclassifier,
 )
 from fmexp.models import User
 
@@ -32,5 +33,9 @@ def create_app(
     @app.cli.command('create-tables')
     def create_tables():
         db.create_all()
+
+    """with app.app_context():
+        fmclassifier.train_model()
+        print('Model trained')"""
 
     return app

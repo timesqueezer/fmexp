@@ -15,3 +15,7 @@ flask-scrypt
 Faker
 
 selenium
+
+scikit-learn
+numpy
+matplotlib

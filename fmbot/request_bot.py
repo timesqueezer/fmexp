@@ -43,3 +43,6 @@ class RequestBot(Bot):
             selected_link = random.choice(all_link_els)
             selected_link.click()
             self.driver.back()
+
+        bot_el = self.driver.find_element_by_id('is-bot')
+        print('IS BOT:', bot_el.text)
