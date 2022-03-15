@@ -117,7 +117,7 @@ class User(db.Model):
 
         data.append(previous_count / total_count)
 
-        # Feature 5:
+        # Feature 5: time between first and last request in session
         first_dp = request_data_point_q.order_by(DataPoint.created).first()
         last_dp = request_data_point_q.order_by(DataPoint.created.desc()).first()
         data.append((last_dp.created - first_dp.created).seconds)

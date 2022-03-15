@@ -119,9 +119,9 @@
         to="/admin"
         class="btn btn-outline-secondary ms-4"
       >Admin</router-link>
-      <span class="ms-4">
+      <!--<span class="ms-4">
         Is Bot: <span id="is-bot">{{ isBot }}</span>
-      </span>
+      </span>-->
     </div>
   </footer>
 </template>

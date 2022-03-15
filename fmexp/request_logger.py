@@ -69,7 +69,7 @@ def fmexp_after_request(response):
     db.session.add(dp)
     db.session.commit()
 
-    if user_uuid:
+    """if user_uuid:
         try:
             u = User.query.filter_by(uuid=UUID(user_uuid)).first()
             # fmclassifier.train_model()
@@ -78,6 +78,6 @@ def fmexp_after_request(response):
             response.headers['fmexp-is-bot'] = str(prediction)
 
         except NotFittedError:
-            print('Model not fitted, skipping')
+            print('Model not fitted, skipping')"""
 
     return response
