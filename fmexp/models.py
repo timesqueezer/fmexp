@@ -6,10 +6,14 @@ from datetime import datetime
 
 from flask_scrypt import generate_random_salt, generate_password_hash, check_password_hash
 
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 from fmexp.extensions import db
-from fmexp.utils import fast_query_count
+from fmexp.utils import (
+    fast_query_count,
+    fast_query_count_q,
+)
 
 
 class User(db.Model):
@@ -38,6 +42,14 @@ class User(db.Model):
 
     is_bot = db.Column(db.Boolean, nullable=False, default=False)
 
+    @staticmethod
+    def query_filtered():
+        THRESHOLD = 2
+
+        return User.query.filter(
+            User.datapoint_count > THRESHOLD
+        )
+
     @property
     def id(self):
         return str(self.uuid)
@@ -45,6 +57,16 @@ class User(db.Model):
     @property
     def is_active(self):
         return self.email is not None
+
+    @hybrid_property
+    def datapoint_count(self):
+        return (
+            db.session.query(
+                db.func.count(DataPoint.id)
+            )
+            .filter(DataPoint.user_uuid == self.uuid)
+            .as_scalar()
+        )
 
     def set_password(self, password):
         self.password_salt = generate_random_salt()
@@ -141,7 +163,7 @@ class DataPoint(db.Model):
 
     created = db.Column(db.DateTime, nullable=False)
 
-    user_uuid = db.Column(UUID(as_uuid=True), db.ForeignKey('users.uuid'), nullable=False)
+    user_uuid = db.Column(UUID(as_uuid=True), db.ForeignKey('users.uuid'), nullable=False, index=True)
     user = db.relationship('User', backref='datapoints')
 
     data_type = db.Column(db.Integer, nullable=False, default=DataPointDataType.REQUEST.value)

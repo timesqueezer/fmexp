@@ -22,7 +22,7 @@ class FMClassifier:
 
         # vec = DictVectorizer()
 
-        q = User.query
+        q = User.query_filtered()
 
         X = [u.get_accumulated_request_features() for u in q]
         y = [1.0 if u.is_bot else 0.0 for u in q]

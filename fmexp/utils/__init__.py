@@ -48,11 +48,15 @@ def random_date():
     return start + timedelta(seconds=random_second)
 
 
-def fast_query_count(q):
+def fast_query_count_q(q):
     from fmexp.extensions import db
     '''
     https://gist.github.com/hest/8798884
     '''
     count_q = q.statement.with_only_columns([db.func.count()]).order_by(None)
-    count = q.session.execute(count_q).scalar()
+    return count_q
+
+
+def fast_query_count(q):
+    count = q.session.execute(fast_query_count_q(q)).scalar()
     return count

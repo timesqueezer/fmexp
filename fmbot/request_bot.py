@@ -2,12 +2,16 @@ import random
 
 from selenium.common.exceptions import NoSuchElementException
 
+from faker import Faker
+
 from fmbot.bot import Bot
 
 
 class RequestBot(Bot):
     def __init__(self, target_host):
         super().__init__(target_host)
+
+        self.fake = Faker()
 
     def check_go_button(self):
         try:
@@ -41,8 +45,39 @@ class RequestBot(Bot):
         for i in range(num_pages):
             all_link_els = self.driver.find_elements_by_xpath('//main//a')
             selected_link = random.choice(all_link_els)
+            print(selected_link)
+            print('location', selected_link.location, selected_link.location_once_scrolled_into_view)
             selected_link.click()
             self.driver.back()
 
-        bot_el = self.driver.find_element_by_id('is-bot')
-        print('IS BOT:', bot_el.text)
+    def visit_random_pages(self, num_pages=100):
+        self.check_go_button()
+
+        for i in range(num_pages):
+            link_els = self.driver.find_elements_by_xpath('//a')
+            el = random.choice(link_els)
+            print('location', el.location, el.location_once_scrolled_into_view)
+            el.click()
+
+    def register(self):
+        self.check_go_button()
+
+        link_el = self.driver.find_element_by_xpath('//a[@href="/register"]')
+        link_el.click()
+
+        email_input_el = self.driver.find_element_by_id('email')
+        email_input_el.send_keys(self.fake.email())
+
+        password = self.fake.word()
+
+        password1_input_el = self.driver.find_element_by_id('password')
+        password1_input_el.send_keys(password)
+
+        password2_input_el = self.driver.find_element_by_id('password2')
+        password2_input_el.send_keys(password)
+
+        not_robot_el = self.driver.find_element_by_id('not_robot')
+        not_robot_el.click()
+
+        submit_el = self.driver.find_element_by_xpath('//button[@type="submit"]')
+        submit_el.click()

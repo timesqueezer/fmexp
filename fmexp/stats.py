@@ -6,6 +6,7 @@ from fmexp.models import (
 )
 from fmexp.utils import fast_query_count
 
+
 def get_stats():
     stats = []
 

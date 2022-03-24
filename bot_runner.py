@@ -11,3 +11,5 @@ if __name__ == '__main__':
         request_bot = RequestBot(args.target)
         request_bot.visit_pages()
         request_bot.visit_blog_pages()
+        request_bot.visit_random_pages()
+        request_bot.register()
