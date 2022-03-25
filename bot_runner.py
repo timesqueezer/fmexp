@@ -9,7 +9,11 @@ if __name__ == '__main__':
 
     if args.mode == 'request':
         request_bot = RequestBot(args.target)
+        print('visit_pages')
         request_bot.visit_pages()
+        print('visit_blog_pages')
         request_bot.visit_blog_pages()
+        print('visit_random_pages')
         request_bot.visit_random_pages()
+        print('register')
         request_bot.register()

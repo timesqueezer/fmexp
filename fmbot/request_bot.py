@@ -1,6 +1,10 @@
+import time
 import random
 
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver import ActionChains
 
 from faker import Faker
 
@@ -42,11 +46,14 @@ class RequestBot(Bot):
         link_el = self.driver.find_element_by_xpath('//a[@href="/blog"]')
         link_el.click()
 
+        print('after blog click')
+
         for i in range(num_pages):
             all_link_els = self.driver.find_elements_by_xpath('//main//a')
             selected_link = random.choice(all_link_els)
-            print(selected_link)
-            print('location', selected_link.location, selected_link.location_once_scrolled_into_view)
+
+            self.scroll_wait(selected_link)
+
             selected_link.click()
             self.driver.back()
 
@@ -56,7 +63,7 @@ class RequestBot(Bot):
         for i in range(num_pages):
             link_els = self.driver.find_elements_by_xpath('//a')
             el = random.choice(link_els)
-            print('location', el.location, el.location_once_scrolled_into_view)
+            self.scroll_wait(el)
             el.click()
 
     def register(self):
