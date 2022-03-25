@@ -1,3 +1,5 @@
+import time
+
 from selenium import webdriver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -30,14 +32,17 @@ class Bot:
         return self.driver.get(full_url)
 
     def scroll_wait(self, el):
-        print(el.location['y'], self.driver.get_window_position()['y'], self.height - self.driver.get_window_position()['y'])
+        print(el.location['y'], self.driver.get_window_position()['y'], self.height + self.driver.get_window_position()['y'])
 
-        if el.location['y'] > (self.height - self.driver.get_window_position()['y']):
-            print('scrolling to', el.location['y'] - self.height - self.driver.get_window_position()['y'] - 100)
-            self.driver.execute_script('window.scrollTo(0, {});'.format(el.location['y'] - self.height - self.driver.get_window_position()['y'] - 100))
+        time.sleep(5)
 
-        elif el.location['y'] <= (self.height - self.driver.get_window_position()['y']):
-            self.driver.execute_script('window.scrollTo(0, {});'.format(self.height - el.location['y'] + 100))
+        if el.location['y'] > (self.height + self.driver.get_window_position()['y']):
+            print('scrolling to', el.location['y'] - self.height + self.driver.get_window_position()['y'] - 100)
+            self.driver.execute_script('window.scrollTo(0, {});'.format(el.location['y'] - self.height + self.driver.get_window_position()['y'] - 100))
+
+        elif el.location['y'] <= (self.driver.get_window_position()['y']):
+            print('scrolling to', el.location['y'])
+            self.driver.execute_script('window.scrollTo(0, {});'.format(el.location['y'] - 100))
 
         WebDriverWait(self.driver, 5) \
             .until(EC.element_to_be_clickable(el))
