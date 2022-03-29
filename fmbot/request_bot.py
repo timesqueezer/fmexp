@@ -46,8 +46,6 @@ class RequestBot(Bot):
         link_el = self.driver.find_element_by_xpath('//a[@href="/blog"]')
         link_el.click()
 
-        print('after blog click')
-
         for i in range(num_pages):
             all_link_els = self.driver.find_elements_by_xpath('//main//a')
             selected_link = random.choice(all_link_els)
@@ -63,6 +61,12 @@ class RequestBot(Bot):
         for i in range(num_pages):
             link_els = self.driver.find_elements_by_xpath('//a')
             el = random.choice(link_els)
+
+            # skip external links
+            href = el.get_attribute('href')
+            if 'matzradloff.info' in href:
+                continue
+
             self.scroll_wait(el)
             el.click()
 
