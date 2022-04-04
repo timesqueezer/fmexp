@@ -9,9 +9,16 @@ from sklearn.metrics import roc_auc_score, roc_curve, auc
 from pprint import pprint
 
 
+RANDOM_STATE = 42
+
+
 class FMClassifier:
-    def __init__(self):
-        self.clf = RandomForestClassifier(max_depth=1, random_state=0)
+    def __init__(self, n_estimators=100, max_depth=1):
+        self.clf = RandomForestClassifier(
+            n_estimators=n_estimators,
+            max_depth=1,
+            random_state=RANDOM_STATE,
+        )
 
     def load_data(self):
         from fmexp.models import (
@@ -30,7 +37,7 @@ class FMClassifier:
         y = [1.0 if u.is_bot else 0.0 for u in q]
 
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
-            X, y, test_size=0.5, random_state=42
+            X, y, test_size=0.1, random_state=RANDOM_STATE
         )
 
     def train_model(self):

@@ -23,7 +23,7 @@ def user_hist():
             db.func.count(DataPoint.id)
         )
         .group_by(DataPoint.user_uuid)
-        .having(db.func.count(DataPoint.id) > 10)
+        .having(db.func.count(DataPoint.id) > 0)
         .filter(DataPoint.data_type == DataPointDataType.REQUEST.value)
         .all()
     )]
@@ -35,7 +35,7 @@ def user_hist():
             db.func.count(DataPoint.id)
         )
         .group_by(DataPoint.user_uuid)
-        .having(db.func.count(DataPoint.id) > 10)
+        .having(db.func.count(DataPoint.id) > 0)
         .filter(DataPoint.data_type == DataPointDataType.MOUSE.value)
         .all()
     )]

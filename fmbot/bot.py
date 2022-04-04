@@ -1,4 +1,5 @@
 import time
+import random
 
 from selenium import webdriver
 from selenium.webdriver.support import expected_conditions as EC
@@ -6,7 +7,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 
 class Bot:
-    def __init__(self, target_host):
+    def __init__(self, target_host, random_delays=False):
         self.width = 1920
         self.height = 1200
 
@@ -15,6 +16,7 @@ class Bot:
         self.driver.implicitly_wait(2)
 
         self.target_host = target_host
+        self.random_delays = random_delays
 
         # need first request to be able to set cookie
         self.get('/?fmexp_bot=true')
@@ -31,6 +33,10 @@ class Bot:
         full_url = self.target_host + url
         return self.driver.get(full_url)
 
+    def random_wait(self):
+        if self.random_delays:
+            time.sleep(random.randint(0, 2000) / 1000)
+
     def get_scroll_y(self):
         return self.driver.execute_script('return window.scrollY')
 
@@ -38,6 +44,8 @@ class Bot:
         self.driver.execute_script('window.scrollTo(0, {});'.format(y))
 
     def scroll_wait(self, el):
+        self.random_wait()
+
         scroll_y = self.get_scroll_y()
         # print(el.location['y'], scroll_y, self.height + scroll_y)
         # time.sleep(3)
@@ -50,3 +58,33 @@ class Bot:
 
         WebDriverWait(self.driver, 5) \
             .until(EC.element_to_be_clickable(el))
+
+    def find_element_by_xpath(self, *args, **kwargs):
+        self.random_wait()
+
+        return self.driver.find_element_by_xpath(*args, **kwargs)
+
+    def find_elements_by_xpath(self, *args, **kwargs):
+        self.random_wait()
+
+        return self.driver.find_elements_by_xpath(*args, **kwargs)
+
+    def find_element_by_id(self, *args, **kwargs):
+        self.random_wait()
+
+        return self.driver.find_element_by_id(*args, **kwargs)
+
+    def send_keys(self, target, *args, **kwargs):
+        self.random_wait()
+
+        return target.send_keys(*args, **kwargs)
+
+    def click(self, target, *args, **kwargs):
+        self.random_wait()
+
+        return target.click(*args, **kwargs)
+
+    def back(self):
+        self.random_wait()
+
+        return self.driver.back()
