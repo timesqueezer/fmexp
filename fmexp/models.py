@@ -8,6 +8,7 @@ from flask_scrypt import generate_random_salt, generate_password_hash, check_pas
 
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.orm import aliased
 
 from fmexp.extensions import db
 from fmexp.utils import (
@@ -43,12 +44,24 @@ class User(db.Model):
     is_bot = db.Column(db.Boolean, nullable=False, default=False)
 
     @staticmethod
-    def query_filtered():
-        THRESHOLD = 2
+    def query_filtered(threshold=2, data_type=None):
 
-        return User.query.filter(
-            User.datapoint_count > THRESHOLD
+        data_point_count_q = (
+            db.session.query(
+                db.func.count(DataPoint.id)
+            )
+            .filter(DataPoint.user_uuid == User.uuid)
         )
+
+        if data_type:
+            # data_point_alias = aliased(DataPoint)
+            data_point_count_q = data_point_count_q.filter(DataPoint.data_type == data_type)
+
+        q = User.query.filter(
+            data_point_count_q.as_scalar() > threshold
+        )
+
+        return q
 
     @property
     def id(self):
@@ -145,6 +158,60 @@ class User(db.Model):
         data.append((last_dp.created - first_dp.created).seconds)
 
         return data
+
+    def get_mouse_features(self):
+        mouse_data_point_q = DataPoint.query.filter_by(
+            user_uuid=self.uuid,
+            data_type=DataPointDataType.MOUSE.value,
+        )
+
+        first_dp = mouse_data_point_q.first()
+        width = first_dp.data['screen']['width']
+        height = first_dp.data['screen']['height']
+
+        data = []
+        for dp in mouse_data_point_q:
+            data.append((
+                dp.data['position']['x'],
+                dp.data['position']['y'],
+                0 if dp.data['type'] == 'move' else 1,
+            ))
+
+        return {
+            'data': data,
+            'width': width,
+            'height': height,
+        }
+
+    def get_mouse_action_chains(self):
+        mouse_data_point_q = DataPoint.query.filter_by(
+            user_uuid=self.uuid,
+            data_type=DataPointDataType.MOUSE.value,
+        ).order_by(DataPoint.created)
+
+        action_chains = []
+        current_chain = []
+        current_chain_first_dp = None
+
+        for dp in mouse_data_point_q:
+            dp_data = (
+                dp.data['position']['x'],
+                dp.data['position']['y'],
+                0 if dp.data['type'] == 'move' else 1,
+                0 if len(current_chain) == 0 else ((dp.created - current_chain_first_dp.created).microseconds // 1000)
+            )
+
+            if len(current_chain) == 0:
+                current_chain_first_dp = dp
+
+            current_chain.append(dp_data)
+
+            if dp.data['type'] != 'move':
+                action_chains.append(current_chain)
+                current_chain = []
+                current_chain_first_dp = None
+
+        return action_chains
 
 
 class DataPointDataType(IntEnum):

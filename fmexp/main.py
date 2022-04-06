@@ -7,7 +7,7 @@ from datetime import datetime
 
 from faker import Faker
 
-from flask import Blueprint, send_file, request, abort
+from flask import Blueprint, send_file, request, abort, url_for
 from flask_jwt_next import current_identity, jwt_required
 
 from fmexp.extensions import db, fmclassifier
@@ -27,6 +27,8 @@ from fmexp.utils import (
     json_response,
     random_date,
 )
+
+from fmexp.fmviz.mouse_heatmap import user_mouse_heatmap
 
 
 main = Blueprint('main', __name__, template_folder='templates', static_folder='static')
@@ -149,7 +151,21 @@ def admin():
 
     stats = get_stats()
 
-    return render_template_fmexp('admin.html', stats=stats)
+    user_heatmaps = [
+        (u, url_for('main.admin_user_mouse_heatmap', user_uuid=str(u.uuid))) for u in
+        User.query_filtered(threshold=200, data_type=DataPointDataType.MOUSE.value).limit(2)
+    ]
+
+    return render_template_fmexp('admin.html', stats=stats, user_heatmaps=user_heatmaps)
+
+
+@main.route('/admin/user-mouse_heatmap/<user_uuid>')
+def admin_user_mouse_heatmap(user_uuid):
+    u = User.query.filter_by(uuid=uuid.UUID(user_uuid)).first()
+
+    image_file = user_mouse_heatmap(u, show=False)
+
+    return send_file(image_file, mimetype='image/png')
 
 
 @main.route('/admin/train-model', methods=['POST'])
