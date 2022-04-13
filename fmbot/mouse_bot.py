@@ -4,7 +4,6 @@ import random
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver import ActionChains
 
 from faker import Faker
 
@@ -16,7 +15,6 @@ class MouseBot(Bot):
         super().__init__(target_host, random_delays=random_delays)
 
         self.fake = Faker()
-        self.ac = ActionChains(self.driver)
 
     def check_go_button(self):
         try:

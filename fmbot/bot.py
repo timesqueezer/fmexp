@@ -2,6 +2,7 @@ import time
 import random
 
 from selenium import webdriver
+from selenium.webdriver import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -94,4 +95,5 @@ class Bot:
     def get_ac(self):
         self.random_wait()
 
-        return self.ac
+        if self.random_delays:
+            return ActionChains(self.driver, duration=random.randint(100, 2000))

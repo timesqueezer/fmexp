@@ -7,6 +7,8 @@ from datetime import datetime
 
 from faker import Faker
 
+from sqlalchemy.orm import aliased
+
 from flask import Blueprint, send_file, request, abort, url_for
 from flask_jwt_next import current_identity, jwt_required
 
@@ -151,20 +153,35 @@ def admin():
 
     stats = get_stats()
 
+    dp_alias = aliased(DataPoint)
+
     user_heatmaps = [
         (u, url_for('main.admin_user_mouse_heatmap', user_uuid=str(u.uuid))) for u in
         User
         .query_filtered(threshold=200, data_type=DataPointDataType.MOUSE.value)
         .filter_by(is_bot=False)
-        .limit(2)
+        .order_by(
+            db.select(db.func.min(dp_alias.created))
+            .where(dp_alias.user_uuid == User.uuid)
+            .as_scalar()
+            .desc()
+        )
+        .limit(5)
     ]
+
 
     bot_heatmaps = [
         (u, url_for('main.admin_user_mouse_heatmap', user_uuid=str(u.uuid))) for u in
         User
         .query_filtered(threshold=1, data_type=DataPointDataType.MOUSE.value)
         .filter_by(is_bot=True)
-        .limit(2)
+        .order_by(
+            db.select(db.func.min(dp_alias.created))
+            .where(dp_alias.user_uuid == User.uuid)
+            .as_scalar()
+            .desc()
+        )
+        .limit(5)
     ]
 
     return render_template_fmexp(
