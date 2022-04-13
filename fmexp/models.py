@@ -2,7 +2,7 @@ import uuid
 import json
 
 from enum import IntEnum
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from flask_scrypt import generate_random_salt, generate_password_hash, check_password_hash
 
@@ -159,50 +159,48 @@ class User(db.Model):
 
         return data
 
-    def get_mouse_features(self):
+    def get_mouse_action_chains(self):
         mouse_data_point_q = DataPoint.query.filter_by(
             user_uuid=self.uuid,
             data_type=DataPointDataType.MOUSE.value,
-        )
+        ).order_by(DataPoint.id)
 
         first_dp = mouse_data_point_q.first()
         width = first_dp.data['screen']['width']
         height = first_dp.data['screen']['height']
 
-        data = []
-        for dp in mouse_data_point_q:
-            data.append((
-                dp.data['position']['x'],
-                dp.data['position']['y'],
-                0 if dp.data['type'] == 'move' else 1,
-            ))
-
-        return {
-            'data': data,
-            'width': width,
-            'height': height,
-        }
-
-    def get_mouse_action_chains(self):
-        mouse_data_point_q = DataPoint.query.filter_by(
-            user_uuid=self.uuid,
-            data_type=DataPointDataType.MOUSE.value,
-        ).order_by(DataPoint.created)
-
         action_chains = []
         current_chain = []
         current_chain_first_dp = None
+        last_dp = None
+        last_td = 0
 
-        for dp in mouse_data_point_q:
+
+        for i, dp in enumerate(mouse_data_point_q):
+            td = 0
+
+            if last_dp and abs(dp.created - last_dp.created) < timedelta(microseconds=33_333):
+                td = last_td + timedelta(microseconds=33_333)
+
+            elif current_chain_first_dp is not None:
+                td = dp.created - current_chain_first_dp.created
+
+            else:
+                td = timedelta(microseconds=0)
+
+            last_td = td
+
             dp_data = (
                 dp.data['position']['x'],
                 dp.data['position']['y'],
                 0 if dp.data['type'] == 'move' else 1,
-                0 if len(current_chain) == 0 else ((dp.created - current_chain_first_dp.created).microseconds // 1000)
+                td.microseconds // 1000,
             )
 
             if len(current_chain) == 0:
                 current_chain_first_dp = dp
+
+            last_dp = dp
 
             current_chain.append(dp_data)
 
@@ -210,8 +208,17 @@ class User(db.Model):
                 action_chains.append(current_chain)
                 current_chain = []
                 current_chain_first_dp = None
+                last_dp = None
+                last_td = 0
 
-        return action_chains
+        return {
+            'action_chains': action_chains,
+            'width': width,
+            'height': height,
+        }
+
+    def get_mouse_features(self):
+        mouse_acs = self.get_mouse_action_chains()
 
 
 class DataPointDataType(IntEnum):

@@ -153,10 +153,26 @@ def admin():
 
     user_heatmaps = [
         (u, url_for('main.admin_user_mouse_heatmap', user_uuid=str(u.uuid))) for u in
-        User.query_filtered(threshold=200, data_type=DataPointDataType.MOUSE.value).limit(2)
+        User
+        .query_filtered(threshold=200, data_type=DataPointDataType.MOUSE.value)
+        .filter_by(is_bot=False)
+        .limit(2)
     ]
 
-    return render_template_fmexp('admin.html', stats=stats, user_heatmaps=user_heatmaps)
+    bot_heatmaps = [
+        (u, url_for('main.admin_user_mouse_heatmap', user_uuid=str(u.uuid))) for u in
+        User
+        .query_filtered(threshold=1, data_type=DataPointDataType.MOUSE.value)
+        .filter_by(is_bot=True)
+        .limit(2)
+    ]
+
+    return render_template_fmexp(
+        'admin.html',
+        stats=stats,
+        user_heatmaps=user_heatmaps,
+        bot_heatmaps=bot_heatmaps,
+    )
 
 
 @main.route('/admin/user-mouse_heatmap/<user_uuid>')

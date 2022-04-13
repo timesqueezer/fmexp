@@ -4,7 +4,10 @@ import io
 
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
+
 import numpy as np
+
+import colorsys
 
 from fmexp.extensions import db
 from fmexp.models import (
@@ -16,11 +19,6 @@ from fmexp.models import (
 
 
 def user_mouse_heatmap(user, show=True):
-    mouse_features = user.get_mouse_features()
-    x_positions = [mf[0] for mf in mouse_features['data']]
-    y_positions = [mf[1] for mf in mouse_features['data']]
-    colors = ['#ff0000' if mf[2] == 1 else '#3366cc' for mf in mouse_features['data']]
-
     if show:
         fig, ax = plt.subplots()
 
@@ -28,9 +26,36 @@ def user_mouse_heatmap(user, show=True):
         fig = Figure()
         ax = fig.subplots()
 
-    ax.scatter(x_positions, y_positions, c=colors, alpha=0.2)
-    ax.set_xlabel('X Position')
-    ax.set_ylabel('Y Position')
+    # mouse_features = user.get_mouse_features()
+    mouse_action_chains = user.get_mouse_action_chains()
+
+    all_dps = []
+    colors = []
+
+    len_acs = len(mouse_action_chains['action_chains'])
+    for i, ac in enumerate(mouse_action_chains['action_chains']):
+        all_dps.extend(ac)
+        for a in ac:
+            colors.append(colorsys.hsv_to_rgb(i / len_acs, 0.5, 0.7))
+
+    x_positions = [mf[0] for mf in all_dps]
+    y_positions = [mf[1] for mf in all_dps]
+    # colors = ['#ff0000' if mf[2] == 1 else '#3366cc' for mf in all_dps]
+    """max_milliseconds = max([mf[3] for mf in all_dps])
+    if max_milliseconds == 0:
+        max_milliseconds = 1
+
+    colors = [
+        colorsys.hsv_to_rgb(mf[3] / max_milliseconds, 0.5, 0.7)
+        for mf in all_dps
+    ]"""
+
+    ax.scatter(x_positions, y_positions, s=10, c=colors, alpha=0.4, label=f'{len_acs} ACs')
+
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+
+    ax.legend()
 
     ax.grid(True)
     fig.tight_layout()

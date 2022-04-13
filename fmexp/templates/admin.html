@@ -34,11 +34,23 @@
 
     <hr>
 
+    <h2>User Heatmaps</h2>
+
     {% for u, image_url in user_heatmaps %}
     <div class="mb-2">
       <div class="mb-1">{{ u.uuid }}</div>
       <div><img src="{{ image_url }}"></div>
     </div>
     {% endfor %}
+
+    <h2>Bot Heatmaps</h2>
+
+    {% for u, image_url in bot_heatmaps %}
+    <div class="mb-2">
+      <div class="mb-1">{{ u.uuid }}</div>
+      <div><img src="{{ image_url }}"></div>
+    </div>
+    {% endfor %}
+
   </div>
 </div>

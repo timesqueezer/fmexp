@@ -35,7 +35,9 @@ class Bot:
 
     def random_wait(self):
         if self.random_delays:
-            time.sleep(random.randint(0, 2000) / 1000)
+            ri = random.randint(0, 2000)
+
+            time.sleep(ri / 1000)
 
     def get_scroll_y(self):
         return self.driver.execute_script('return window.scrollY')
@@ -88,3 +90,8 @@ class Bot:
         self.random_wait()
 
         return self.driver.back()
+
+    def get_ac(self):
+        self.random_wait()
+
+        return self.ac
