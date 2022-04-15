@@ -1,6 +1,8 @@
 import uuid
 import json
 
+from itertools import groupby
+
 from enum import IntEnum
 from datetime import datetime, timedelta
 
@@ -160,14 +162,23 @@ class User(db.Model):
         return data
 
     def get_mouse_action_chains(self):
-        mouse_data_point_q = DataPoint.query.filter_by(
-            user_uuid=self.uuid,
-            data_type=DataPointDataType.MOUSE.value,
-        ).order_by(DataPoint.id)
+        ACTION_MAX_LENGTH = 2 # seconds
+        SAMPLE_RATE = 30 # 1/s
+        SAMPLE_TD_US = 1000_000 / SAMPLE_RATE # microseconds
 
-        first_dp = mouse_data_point_q.first()
+        mouse_data_point_q = (
+            DataPoint
+            .query
+            .filter_by(
+                user_uuid=self.uuid,
+                data_type=DataPointDataType.MOUSE.value,
+            )
+            # .order_by(DataPoint.id)
+        )
+
+        """first_dp = mouse_data_point_q.first()
         width = first_dp.data['screen']['width']
-        height = first_dp.data['screen']['height']
+        height = first_dp.data['screen']['height']"""
 
         action_chains = []
         current_chain = []
@@ -175,46 +186,53 @@ class User(db.Model):
         last_dp = None
         last_td = 0
 
+        dps_per_width = {}
+        for width, l in groupby(
+            sorted(mouse_data_point_q, key=lambda dp: dp.data['screen']['width']),
+            lambda dp: dp.data['screen']['width'],
+        ):
+            dps_per_width[width] = list(l)
 
-        for i, dp in enumerate(mouse_data_point_q):
-            td = 0
+        for width, dps in dps_per_width.items():
+            for i, dp in enumerate(sorted(dps, key=lambda dp: dp.id)):
+                td = 0
 
-            if last_dp and abs(dp.created - last_dp.created) < timedelta(microseconds=33_333):
-                td = last_td + timedelta(microseconds=33_333)
+                if last_dp and abs(dp.created - last_dp.created) < timedelta(microseconds=SAMPLE_TD_US):
+                    td = last_td + timedelta(microseconds=SAMPLE_TD_US)
 
-            elif current_chain_first_dp is not None:
-                td = dp.created - current_chain_first_dp.created
+                elif current_chain_first_dp is not None:
+                    td = dp.created - current_chain_first_dp.created
 
-            else:
-                td = timedelta(microseconds=0)
+                else:
+                    td = timedelta(microseconds=0)
 
-            last_td = td
+                last_td = td
 
-            dp_data = (
-                dp.data['position']['x'],
-                dp.data['position']['y'],
-                0 if dp.data['type'] == 'move' else 1,
-                td.microseconds // 1000,
-            )
+                dp_data = (
+                    dp.data['position']['x'],
+                    dp.data['position']['y'],
+                    0 if dp.data['type'] == 'move' else 1,
+                    td.microseconds // 1000,
+                )
 
-            if len(current_chain) == 0:
-                current_chain_first_dp = dp
+                if len(current_chain) == 0:
+                    current_chain_first_dp = dp
 
-            last_dp = dp
+                last_dp = dp
 
-            current_chain.append(dp_data)
+                current_chain.append(dp_data)
 
-            if dp.data['type'] != 'move':
-                action_chains.append(current_chain)
-                current_chain = []
-                current_chain_first_dp = None
-                last_dp = None
-                last_td = 0
+                if dp.data['type'] != 'move' or td > timedelta(seconds=ACTION_MAX_LENGTH):
+                    action_chains.append(current_chain)
+                    current_chain = []
+                    current_chain_first_dp = None
+                    last_dp = None
+                    last_td = 0
 
         return {
             'action_chains': action_chains,
-            'width': width,
-            'height': height,
+            # 'width': width,
+            # 'height': height,
         }
 
     def get_mouse_features(self):
