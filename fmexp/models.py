@@ -6,6 +6,8 @@ from itertools import groupby
 from enum import IntEnum
 from datetime import datetime, timedelta
 
+import numpy as np
+
 from flask_scrypt import generate_random_salt, generate_password_hash, check_password_hash
 
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -194,7 +196,11 @@ class User(db.Model):
             dps_per_width[width] = list(l)
 
         for width, dps in dps_per_width.items():
-            for i, dp in enumerate(sorted(dps, key=lambda dp: dp.id)):
+            sorted_dps = sorted(dps, key=lambda dp: dp.id)
+
+            first_dp = sorted_dps[0]
+
+            for i, dp in enumerate(sorted_dps):
                 td = 0
 
                 if last_dp and abs(dp.created - last_dp.created) < timedelta(microseconds=SAMPLE_TD_US):
@@ -208,11 +214,14 @@ class User(db.Model):
 
                 last_td = td
 
+                rel_x = dp.data['position']['x'] - first_dp.data['position']['x']
+                rel_y = dp.data['position']['y'] - first_dp.data['position']['y']
+
                 dp_data = (
-                    dp.data['position']['x'],
-                    dp.data['position']['y'],
+                    rel_x,
+                    rel_y,
                     0 if dp.data['type'] == 'move' else 1,
-                    td.microseconds // 1000,
+                    td.microseconds / 1000,
                 )
 
                 if len(current_chain) == 0:
@@ -236,7 +245,43 @@ class User(db.Model):
         }
 
     def get_mouse_features(self):
-        mouse_acs = self.get_mouse_action_chains()
+        MIN_ACTIONS = 4
+
+        mouse_ac_data = self.get_mouse_action_chains()
+
+        for ac in mouse_ac_data['action_chains'][:1]:
+            if len(ac) < MIN_ACTIONS:
+                continue
+
+            x = np.array([a[0] for a in ac])
+            y = np.array([a[1] for a in ac])
+            t = np.array([a[3] for a in ac])
+
+            # first phase: preprocessing
+
+            # distance to start
+            s = np.array([
+                sum(
+                    np.sqrt(
+                        ((x[k + 1] - x[k]) ** 2) +
+                        ((y[k + 1] - y[k]) ** 2)
+                    )
+                    for k in range(i)
+                ) for i, _ in enumerate(x)
+            ])
+
+            # TODO: linear + cubic spline interpolation
+            # https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.CubicSpline.html
+
+            # angle tangent to x-axis
+            # d_theta = 
+
+            """theta = [
+                np.atan2()
+                for j in range(len(ac))
+            ]"""
+
+
 
 
 class DataPointDataType(IntEnum):

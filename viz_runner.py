@@ -5,6 +5,7 @@ from fmexp.fmviz.user_hist import user_hist
 from fmexp.fmviz.roc_curves import roc_curves
 from fmexp.fmviz.mouse_heatmap import mouse_heatmap
 from fmexp.fmviz.mouse_hist import mouse_hist
+from fmexp.fmviz.mouse_debug import mouse_debug
 
 
 if __name__ == '__main__':
@@ -25,3 +26,6 @@ if __name__ == '__main__':
 
         elif args.mode == 'mouse_hist':
             mouse_hist()
+
+        elif args.mode == 'mouse_debug':
+            mouse_debug()
