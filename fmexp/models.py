@@ -7,6 +7,8 @@ from enum import IntEnum
 from datetime import datetime, timedelta
 
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy.interpolate import CubicSpline
 
 from flask_scrypt import generate_random_salt, generate_password_hash, check_password_hash
 
@@ -257,6 +259,8 @@ class User(db.Model):
             y = np.array([a[1] for a in ac])
             t = np.array([a[3] for a in ac])
 
+            print(len(t))
+
             # first phase: preprocessing
 
             # distance to start
@@ -273,15 +277,105 @@ class User(db.Model):
             # TODO: linear + cubic spline interpolation
             # https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.CubicSpline.html
 
-            # angle tangent to x-axis
-            # d_theta = 
+            axis_points = np.arange(0, max(t), 1)
 
-            """theta = [
-                np.atan2()
-                for j in range(len(ac))
-            ]"""
+            x_lin_interp = np.interp(axis_points, t, x)
+            y_lin_interp = np.interp(axis_points, t, y)
+
+            # cs_x = CubicSpline(t, x)
+            # cs_y = CubicSpline(t, y)
 
 
+            # spatial information
+            x_prime = x_lin_interp
+            y_prime = y_lin_interp
+            # x_prime = cs_x(axis_points)
+            # y_prime = cs_y(axis_points)
+
+            s_prime = np.array([
+                sum(
+                    np.sqrt(
+                        ((x_prime[k + 1] - x_prime[k]) ** 2) +
+                        ((y_prime[k + 1] - y_prime[k]) ** 2)
+                    )
+                    for k in range(i)
+                ) for i, _ in enumerate(x_prime)
+            ])
+
+            theta = [0]
+            theta.extend([
+                np.arctan2(
+                    (y_prime[k + 1] - y_prime[k]),
+                    (x_prime[k + 1] - x_prime[k])
+                )
+                for k in range(len(y_prime) - 1)
+            ])
+
+            # todo: curvature and maybe use equation from paper
+
+            fig, ax = plt.subplots()
+            # ax.plot(t, x, 'o', label='x')
+            # ax.plot(t, y, 'o', label='y')
+            # ax.plot(t, s, label='s')
+            # ax.plot(axis_points, x_lin_interp, label='x lin interp')
+            # ax.plot(axis_points, y_lin_interp, label='y lin interp')
+            # ax.plot(axis_points, cs_x(axis_points), label='x cubic interp')
+            # ax.plot(axis_points, cs_y(axis_points), label='y interp')
+
+
+            # ax.plot(axis_points, x_prime, label='x\'')
+            # ax.plot(axis_points, y_prime, label='y\'')
+            ax.plot(axis_points, theta, label='theta')
+
+            ax.legend()
+            plt.show()
+
+            # temporal information
+            dt = k / len(x)
+
+            v_x = [0]
+            v_x.extend([
+                (x[k + 1] - x[k]) / dt
+                for k in range(len(x) - 1)
+            ])
+
+            v_y = [0]
+            v_y.extend([
+                (y[k + 1] - y[k]) / dt
+                for k in range(len(y) - 1)
+            ])
+
+            v = [
+                sqrt(v_x[k]**2 + v_y[k]**2)
+                for k in range(len(v_x))
+            ]
+
+            # acceleration
+            a = [0]
+            a.extend([
+                (v[k + 1] - v[k]) / dt
+                for k in range(len(v) - 1)
+            ])
+
+            # jerk
+            j = [0]
+            j.extend([
+                (a[k + 1] - a[k]) / dt
+                for k in range(len(a) - 1)
+            ])
+
+            # angular velocity
+            w = [0]
+            w.extend([
+                theta[k + 1] - theta[k] / dt
+                for k in range(len(theta) - 1)
+            ])
+
+            # statistical analysis for actual feature data
+            features = []
+
+            """for _v in vector:
+                for measure in minimum, maximum, mean, standard deviation, and (maximum - minimum)."""
 
 
 class DataPointDataType(IntEnum):

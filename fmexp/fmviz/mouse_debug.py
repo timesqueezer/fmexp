@@ -18,7 +18,6 @@ from fmexp.models import (
 
 
 def mouse_debug():
-
     u = User.query_filtered(data_type=DataPointDataType.MOUSE.value).first()
 
     mouse_features = u.get_mouse_features()
