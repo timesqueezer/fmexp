@@ -251,15 +251,15 @@ class User(db.Model):
 
         mouse_ac_data = self.get_mouse_action_chains()
 
-        for ac in mouse_ac_data['action_chains'][:1]:
+        ac_features = []
+
+        for ac in mouse_ac_data['action_chains']:
             if len(ac) < MIN_ACTIONS:
                 continue
 
             x = np.array([a[0] for a in ac])
             y = np.array([a[1] for a in ac])
             t = np.array([a[3] for a in ac])
-
-            print(len(t))
 
             # first phase: preprocessing
 
@@ -313,7 +313,7 @@ class User(db.Model):
 
             # todo: curvature and maybe use equation from paper
 
-            fig, ax = plt.subplots()
+            """fig, ax = plt.subplots()
             # ax.plot(t, x, 'o', label='x')
             # ax.plot(t, y, 'o', label='y')
             # ax.plot(t, s, label='s')
@@ -328,47 +328,48 @@ class User(db.Model):
             ax.plot(axis_points, theta, label='theta')
 
             ax.legend()
-            plt.show()
+            plt.show()"""
 
             # temporal information
-            dt = k / len(x)
+            # dt = k / len(x)
+            len_x = len(x)
 
             v_x = [0]
             v_x.extend([
-                (x[k + 1] - x[k]) / dt
-                for k in range(len(x) - 1)
+                (x[k] - x[k - 1]) / (k / len_x)
+                for k in range(1, len_x)
             ])
 
             v_y = [0]
             v_y.extend([
-                (y[k + 1] - y[k]) / dt
-                for k in range(len(y) - 1)
+                (y[k] - y[k - 1]) / (k / len_x)
+                for k in range(1, len(y))
             ])
 
             v = [
-                sqrt(v_x[k]**2 + v_y[k]**2)
+                np.sqrt(v_x[k]**2 + v_y[k]**2)
                 for k in range(len(v_x))
             ]
 
             # acceleration
             a = [0]
             a.extend([
-                (v[k + 1] - v[k]) / dt
-                for k in range(len(v) - 1)
+                (v[k] - v[k - 1]) / (k / len_x)
+                for k in range(1, len(v))
             ])
 
             # jerk
             j = [0]
             j.extend([
-                (a[k + 1] - a[k]) / dt
-                for k in range(len(a) - 1)
+                (a[k] - a[k - 1]) / (k / len_x)
+                for k in range(1, len(a))
             ])
 
             # angular velocity
             w = [0]
             w.extend([
-                theta[k + 1] - theta[k] / dt
-                for k in range(len(theta) - 1)
+                theta[k] - theta[k - 1] / (k / len_x)
+                for k in range(1, len(theta))
             ])
 
             # statistical analysis for actual feature data
@@ -376,6 +377,46 @@ class User(db.Model):
 
             """for _v in vector:
                 for measure in minimum, maximum, mean, standard deviation, and (maximum - minimum)."""
+
+            # for vector in [x_prime, y_prime, theta, curvature, delta_curvature, v_x, v_y, v, a, j, w]
+            for vector in [x_prime, y_prime, theta, v_x, v_y, v, a, j, w]:
+                for measure in [np.min, np.max, np.mean, np.std, 'max-min']:
+                    if measure == 'max-min':
+                        features.append(np.max(vector) - np.min(vector))
+
+                    else:
+                        features.append(measure(vector))
+
+            # t_n: time of stroke
+            # s_n-1: length of stroke
+            t_n = t[-1] - t[0]
+            s_n_1 = s[-1]
+
+            features.append(t_n)
+            features.append(s_n_1)
+
+            # straightness
+            straightness = np.sqrt(
+                ( (x[0] - x[-1]) ** 2 ) +
+                ( (y[0] - y[-1]) ** 2 )
+            ) / max(s_n_1, 1)
+
+            features.append(straightness)
+
+            # jitter: ratio between original and smoothed path lengths
+            jitter = s[-1] / max(s_prime[-1], 1)
+
+            features.append(jitter)
+
+            # TODO: number of "critical points" which have high curvature
+            # TODO: time to click
+            # TODO: number of pauses
+            # TODO: paused time
+            # TODO: paused time ratio
+
+            ac_features.append(features)
+
+        return ac_features
 
 
 class DataPointDataType(IntEnum):

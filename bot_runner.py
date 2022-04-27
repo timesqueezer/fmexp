@@ -7,10 +7,6 @@ from fmbot.request_bot import RequestBot
 from fmbot.mouse_bot import MouseBot
 
 
-def chunkify(lst, n):
-    return [ lst[i::n] for i in range(n) ]
-
-
 def run_request_bot(i, n, runs_per_proc, random_delays):
     methods = [
         'visit_pages',

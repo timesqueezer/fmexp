@@ -1,3 +1,5 @@
+from multiprocessing import Process, cpu_count, Queue
+
 import numpy as np
 
 from sklearn.ensemble import RandomForestClassifier
@@ -12,6 +14,10 @@ from pprint import pprint
 RANDOM_STATE = 42
 
 
+def chunkify(lst, n):
+    return [ lst[i::n] for i in range(n) ]
+
+
 class FMClassifier:
     def __init__(self, n_estimators=100, max_depth=1):
         self.clf = RandomForestClassifier(
@@ -20,21 +26,78 @@ class FMClassifier:
             random_state=RANDOM_STATE,
         )
 
-    def load_data(self):
+    def load_data(self, mode='request'):
+        from fmexp import create_app
         from fmexp.models import (
             DataPoint,
             User,
             DataPointDataType,
         )
 
+        app = create_app()
+
         print('loading training data')
 
         # vec = DictVectorizer()
 
-        q = User.query_filtered()
+        with app.app_context():
+            q = User.query_filtered().all()
 
-        X = [u.get_accumulated_request_features() for u in q]
-        y = [1.0 if u.is_bot else 0.0 for u in q]
+        if mode == 'request':
+            X = [u.get_accumulated_request_features() for u in q]
+            y = [1.0 if u.is_bot else 0.0 for u in q]
+
+        elif mode == 'mouse':
+            X = []
+            y = []
+
+            def get_user_mouse_features(i, n, user_ids, q):
+                from fmexp import create_app
+
+                p_app = create_app()
+                with p_app.app_context():
+                    p_X = []
+                    p_y = []
+
+                    for u in User.query.filter(User.uuid.in_(user_ids)):
+                        mouse_features = u.get_mouse_features()
+                        p_X.extend([ac_features for ac_features in mouse_features])
+                        p_y.extend([1.0 if u.is_bot else 0.0 for _ in range(len(mouse_features))])
+
+                    q.put({ 'X': p_X, 'y': p_y })
+
+            PROCESSES = cpu_count()
+
+            all_user_ids = [u.uuid for u in q]
+            user_ids_per_proc = chunkify(all_user_ids, PROCESSES)
+
+            processes = []
+            mp_queues = []
+
+            for i in range(PROCESSES):
+                mp_queue = Queue()
+                mp_queues.append(mp_queue)
+                user_ids = user_ids_per_proc[i]
+
+                p = Process(
+                    target=get_user_mouse_features,
+                    args=(i, PROCESSES, user_ids, mp_queue, ),
+                )
+                p.start()
+                print(f'[{i}] Started')
+                processes.append(p)
+
+            for i, p in enumerate(processes):
+                print(f'[{i}] Awaiting result')
+                result = mp_queues[i].get()
+                X.extend(result['X'])
+                y.extend(result['y'])
+                print(f'[{i}] Got result')
+
+            for i, p in enumerate(processes):
+                p.join()
+                print(f'[{i}] Finished')
+
 
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
             X, y, test_size=0.1, random_state=RANDOM_STATE
