@@ -12,8 +12,8 @@ from fmbot.bot import Bot
 
 
 class RequestBot(Bot):
-    def __init__(self, target_host, random_delays=False):
-        super().__init__(target_host, random_delays=random_delays)
+    def __init__(self, target_host, random_delays=False, advanced=False):
+        super().__init__(target_host, 'request', random_delays=random_delays, advanced=advanced)
 
         self.fake = Faker()
 

@@ -7,7 +7,7 @@ from fmbot.request_bot import RequestBot
 from fmbot.mouse_bot import MouseBot
 
 
-def run_request_bot(i, n, runs_per_proc, random_delays):
+def run_request_bot(i, n, runs_per_proc, random_delays, advanced):
     methods = [
         'visit_pages',
         'visit_blog_pages',
@@ -17,7 +17,7 @@ def run_request_bot(i, n, runs_per_proc, random_delays):
     ]
 
     for i in range(runs_per_proc):
-        request_bot = RequestBot(args.target, random_delays=random_delays)
+        request_bot = RequestBot(args.target, random_delays=random_delays, advanced=advanced)
 
         shuffled_methods = random.sample(methods, len(methods))
         for method in shuffled_methods:
@@ -28,7 +28,7 @@ def run_request_bot(i, n, runs_per_proc, random_delays):
                 print(f'[{i}] HERP DERP:', e)
 
 
-def run_mouse_bot(i, n, runs_per_proc, random_delays):
+def run_mouse_bot(i, n, runs_per_proc, random_delays, advanced):
     methods = [
         'visit_pages',
         #'visit_blog_pages',
@@ -38,7 +38,7 @@ def run_mouse_bot(i, n, runs_per_proc, random_delays):
     ]
 
     for i in range(runs_per_proc):
-        mouse_bot = MouseBot(args.target, random_delays=random_delays)
+        mouse_bot = MouseBot(args.target, random_delays=random_delays, advanced=advanced)
 
         shuffled_methods = random.sample(methods, len(methods))
         for method in shuffled_methods:
@@ -51,7 +51,7 @@ def run_mouse_bot(i, n, runs_per_proc, random_delays):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='FMEXP Bot Runner')
-    parser.add_argument('-m', default='request', required=False, dest='mode')
+    parser.add_argument('-m', default='request', required=False, dest='mode', choices=['request', 'request_advanced', 'mouse', 'mouse_advanced'])
     parser.add_argument('-t', default='http://10.1.1.111:5002', required=False, dest='target')
     parser.add_argument('-n', default=1, required=False, dest='num_runs', type=int)
     parser.add_argument('-r', default=True, required=False, dest='random_delays')
@@ -70,19 +70,29 @@ if __name__ == '__main__':
 
     p_list = []
 
+    advanced = False
+    target = None
+    if args.mode == 'request':
+        target = run_request_bot
+
+    if args.mode == 'mouse':
+        target = run_mouse_bot
+
+    if args.mode == 'request_advanced':
+        target = run_request_bot
+        advanced = True
+
+    if args.mode == 'mouse_advanced':
+        target = run_mouse_bot
+        advanced = True
+
+    else:
+        pass
+
+
     print('Starting {} processes'.format(PROCESSES))
     for i in range(PROCESSES):
-        target = None
-        if args.mode == 'request':
-            target = run_request_bot
-
-        if args.mode == 'mouse':
-            target = run_mouse_bot
-
-        else:
-            pass
-
-        p = Process(target=target, args=(i, PROCESSES, runs_per_proc, random_delays, ))
+        p = Process(target=target, args=(i, PROCESSES, runs_per_proc, random_delays, advanced, ))
         p_list.append(p)
         p.start()
 

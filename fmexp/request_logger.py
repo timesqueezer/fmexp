@@ -31,6 +31,26 @@ def fmexp_after_request(response):
         if is_bot:
             new_user.is_bot = True
 
+        random_delays = False
+        if 'random_delays' in request.args:
+            random_delays = True if request.args['random_delays'] == 'true' else False
+
+        advanced = False
+        if 'advanced' in request.args:
+            advanced = True if request.args['advanced'] == 'true' else False
+
+        if 'bot_mode' in request.args:
+            if request.args['bot_mode'] == 'request':
+                new_user.bot_request_mode = '{}{}'.format(
+                    'basic' if not advanced else 'advanced',
+                    '_random_delays' if random_delays else '',
+                )
+            elif request.args['bot_mode'] == 'mouse':
+                new_user.bot_mouse_mode = '{}{}'.format(
+                    'basic' if not advanced else 'advanced',
+                    '_random_delays' if random_delays else '',
+                )
+
         db.session.add(new_user)
         db.session.commit()
 

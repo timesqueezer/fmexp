@@ -48,6 +48,8 @@ class User(db.Model):
     logged_in = db.Column(db.Boolean, nullable=False, default=False)
 
     is_bot = db.Column(db.Boolean, nullable=False, default=False)
+    bot_request_mode = db.Column(db.String, nullable=True) # 'basic', 'basic_random_delays', 'advanced', 'advanced_random_delays'
+    bot_mouse_mode = db.Column(db.String, nullable=True) # 'basic', 'basic_random_delays', 'advanced', 'advanced_random_delays'
 
     @staticmethod
     def query_filtered(threshold=2, data_type=None):
