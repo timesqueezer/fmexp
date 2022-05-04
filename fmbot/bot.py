@@ -39,9 +39,9 @@ class Bot:
         full_url = self.target_host + url
         return self.driver.get(full_url)
 
-    def random_wait(self):
+    def random_wait(self, upper_limit=2000):
         if self.random_delays:
-            ri = random.randint(0, 2000)
+            ri = random.randint(0, upper_limit)
 
             time.sleep(ri / 1000)
 

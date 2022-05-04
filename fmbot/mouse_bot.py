@@ -1,6 +1,8 @@
 import time
 import random
 
+import pyautogui
+
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -16,6 +18,31 @@ class MouseBot(Bot):
 
         self.fake = Faker()
 
+    def move_click(self, el):
+        self.scroll_wait(el)
+
+        if not self.advanced:
+            self.get_ac().move_to_element(el).perform()
+            self.get_ac().click().perform()
+
+        else:
+            self.random_wait()
+
+            rd = 500
+            if self.random_delays:
+                rd = random.randint(0, 2000)
+
+            x = el.location['x']
+            y = el.location['y']
+
+            pyautogui.moveTo(x, y, duration=(rd / 1000), tween=pyautogui.easeInOutCubic)
+
+            self.random_wait()
+
+            pyautogui.mouseDown()
+            self.random_wait(upper_limit=200)
+            pyautogui.mouseUp()
+
     def check_go_button(self):
         try:
             go_button = self.find_element_by_xpath('//button[text() = "Let\'s go"]')
@@ -23,8 +50,7 @@ class MouseBot(Bot):
         except NoSuchElementException:
             return
 
-        self.get_ac().move_to_element(go_button).perform()
-        self.get_ac().click().perform()
+        self.move_click(go_button)
 
     def visit_pages(self):
         self.check_go_button()
@@ -38,22 +64,21 @@ class MouseBot(Bot):
 
         for tlp in top_level_pages:
             link_el = self.find_element_by_xpath('//a[@href="{}"]'.format(tlp))
-            self.get_ac().move_to_element(link_el).perform()
-            self.get_ac().click().perform()
+
+            self.move_click(link_el)
 
     def visit_blog_pages(self, num_pages=10):
         self.check_go_button()
 
         link_el = self.find_element_by_xpath('//a[@href="/blog"]')
-        self.click(link_el)
+        self.move_click(link_el)
 
         for i in range(num_pages):
             all_link_els = self.find_elements_by_xpath('//main//a')
             selected_link = random.choice(all_link_els)
 
-            self.scroll_wait(selected_link)
+            self.move_click(selected_link)
 
-            self.click(selected_link)
             self.back()
 
     def visit_random_pages(self, num_pages=100):
@@ -68,14 +93,13 @@ class MouseBot(Bot):
             if 'matzradloff.info' in href:
                 continue
 
-            self.scroll_wait(el)
-            self.click(el)
+            self.move_click(el)
 
     def register(self):
         self.check_go_button()
 
         link_el = self.find_element_by_xpath('//a[@href="/register"]')
-        self.click(link_el)
+        self.move_click(link_el)
 
         email_input_el = self.find_element_by_id('email')
         fake_email = self.fake.email()
@@ -103,16 +127,16 @@ class MouseBot(Bot):
         password2_input_el.send_keys(password)
 
         not_robot_el = self.find_element_by_id('not_robot')
-        self.click(not_robot_el)
+        self.move_click(not_robot_el)
 
         submit_el = self.find_element_by_xpath('//button[@type="submit"]')
-        self.click(submit_el)
+        self.move_click(submit_el)
 
     def register_and_fill_in_profile(self):
         self.check_go_button()
 
         link_el = self.find_element_by_xpath('//a[@href="/register"]')
-        self.click(link_el)
+        self.move_click(link_el)
 
         email_input_el = self.find_element_by_id('email')
         email_input_el.send_keys(self.fake.email())
@@ -126,7 +150,7 @@ class MouseBot(Bot):
         password2_input_el.send_keys(password)
 
         not_robot_el = self.find_element_by_id('not_robot')
-        self.click(not_robot_el)
+        self.move_click(not_robot_el)
 
         submit_el = self.find_element_by_xpath('//button[@type="submit"]')
-        self.click(submit_el)
+        self.move_click(submit_el)
