@@ -92,6 +92,17 @@ export default class InputRecorder {
   }
 
   onPointerDown(e) {
+    const div = document.createElement('div')
+    div.style.position = 'absolute'
+    div.style.top = e.clientY + 'px'
+    div.style.left = e.clientX + 'px'
+    div.style.width = '20px'
+    div.style.height = '20px'
+    div.style.background = 'red'
+    document.body.appendChild(div)
+
+    console.log('div', div)
+
     this.pushEvent({
       type: 'pointerdown',
       position: { x: e.clientX, y: e.clientY },

@@ -18,6 +18,14 @@ class MouseBot(Bot):
 
         self.fake = Faker()
 
+        # self.driver.execute_script('const borderWidth = (window.outerWidth - window.innerWidth) / 2')
+        # self.window_x = self.driver.execute_script('return window.screenLeft + window.pageXOffset')
+        self.window_x = self.driver.execute_script('return window.screenX')
+        self.window_y = self.driver.execute_script('return (window.outerHeight - window.innerHeight) + window.screenY')
+
+        print('window_x', self.window_x)
+        print('window_y', self.window_y)
+
     def move_click(self, el):
         self.scroll_wait(el)
 
@@ -32,16 +40,28 @@ class MouseBot(Bot):
             if self.random_delays:
                 rd = random.randint(0, 2000)
 
-            x = el.location['x']
-            y = el.location['y']
+            # click_offset = 10
+            # wat
+            click_offset_x = 25
+            click_offset_y = 50
+
+            x = el.location['x'] + self.window_x + click_offset_x
+            y = el.location['y'] + self.window_y + click_offset_y
+
+            """print('hmmm', x, y)
+            print(
+                self.driver.execute_script('return document.getElementById("consentButton").getBoundingClientRect().y')
+            )
+            print(el.location)"""
 
             pyautogui.moveTo(x, y, duration=(rd / 1000), tween=pyautogui.easeInOutCubic)
 
             self.random_wait()
 
-            pyautogui.mouseDown()
+            """pyautogui.mouseDown()
             self.random_wait(upper_limit=200)
-            pyautogui.mouseUp()
+            pyautogui.mouseUp()"""
+            pyautogui.click()
 
     def check_go_button(self):
         try:

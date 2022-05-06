@@ -25,6 +25,7 @@
       }
     },
     async created() {
+      // await this.init()
       if (!window.localStorage.getItem('fmexp_consent')) {
         this.showConsentAlert = true
 
@@ -69,6 +70,15 @@
         window.localStorage.setItem('fmexp_consent', true)
         await this.init()
         this.showConsentAlert = false
+
+        const div = document.createElement('div')
+        div.style.position = 'absolute'
+        div.style.top = '0px'
+        div.style.left = '0px'
+        div.style.width = '40px'
+        div.style.height = '40px'
+        div.style.background = 'green'
+        document.body.appendChild(div)
       },
       updateIsBot(isBot) {
         this.isBot = isBot
@@ -91,7 +101,7 @@
           <div class="bg-white shadow-sm p-4 text-center">
             <h1 class="mb-4 fw-bold">Welcome and Thank You for Participating</h1>
             <p class="lead mb-4">My Name is Matz and I am conducting an experiment for my bachelor's thesis. Please browse this website as if it was real and feel free to register and update your profile information. To learn more visit the about page.</p>
-            <button class="btn btn-primary btn-lg" @click="consent">Let's go</button>
+            <button id="consentButton" class="btn btn-primary btn-lg" @click="consent">Let's go</button>
           </div>
         </div>
 
