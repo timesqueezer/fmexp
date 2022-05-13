@@ -31,10 +31,10 @@ def run_request_bot(i, n, runs_per_proc, random_delays, advanced):
 def run_mouse_bot(i, n, runs_per_proc, random_delays, advanced):
     methods = [
         'visit_pages',
-        #'visit_blog_pages',
-        #'visit_random_pages',
-        #'register',
-        #'register_and_fill_in_profile',
+        'visit_blog_pages',
+        'visit_random_pages',
+        # 'register',
+        # 'register_and_fill_in_profile',
     ]
 
     for i in range(runs_per_proc):

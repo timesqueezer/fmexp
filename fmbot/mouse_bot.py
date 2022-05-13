@@ -58,10 +58,10 @@ class MouseBot(Bot):
 
             self.random_wait()
 
-            """pyautogui.mouseDown()
+            pyautogui.mouseDown()
             self.random_wait(upper_limit=200)
-            pyautogui.mouseUp()"""
-            pyautogui.click()
+            pyautogui.mouseUp()
+            # pyautogui.click()
 
     def check_go_button(self):
         try:
