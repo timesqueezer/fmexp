@@ -10,7 +10,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 class Bot:
     def __init__(self, target_host, mode, random_delays=False, advanced=False):
         self.width = 1920
-        self.height = 1200
+        self.height = 1080
 
         self.driver = webdriver.Firefox()
         self.driver.set_window_size(self.width, self.height)

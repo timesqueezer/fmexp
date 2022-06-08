@@ -76,6 +76,7 @@ class MouseBot(Bot):
         self.check_go_button()
 
         top_level_pages = [
+            '/',
             '/blog',
             '/contact',
             '/login',

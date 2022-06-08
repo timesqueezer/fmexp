@@ -2,6 +2,8 @@ from multiprocessing import Process, cpu_count, Queue
 
 import numpy as np
 
+import flwr as fl
+
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.model_selection import train_test_split
@@ -20,13 +22,39 @@ def chunkify(lst, n):
 
 class FMClassifier:
     def __init__(self, n_estimators=100, max_depth=1):
+        self.n_estimators = n_estimators
+        self.max_depth = max_depth
+        self.set_initial_params()
+
+    def get_model_parameters(self):
+        print('GET PARAMS', self.clf.get_params())
+        return self.clf.get_params()
+
+    def set_model_parameters(self, parameters):
+        print('SET PARAMS', parameters)
+        self.clf.set_params(parameters)
+
+    def set_initial_params(self):
         self.clf = RandomForestClassifier(
-            n_estimators=n_estimators,
-            max_depth=1,
+            n_estimators=self.n_estimators,
+            max_depth=self.max_depth,
             random_state=RANDOM_STATE,
         )
 
-    def load_data(self, mode='request'):
+    """def partition(self, X, y, num_partitions):
+        return list(
+            zip(np.array_split(X, num_partitions), np.array_split(y, num_partitions))
+        )"""
+
+    def get_eval_fn(self):
+        def eval_fn(parameters):
+            self.set_model_parameters(parameters)
+            score = self.test_model()
+            return score, { 'accuracy': score }
+
+        return eval_fn
+
+    def load_data(self, mode='request', test_only=False):
         from fmexp import create_app
         from fmexp.models import (
             DataPoint,
@@ -41,11 +69,21 @@ class FMClassifier:
         # vec = DictVectorizer()
 
         with app.app_context():
-            q = User.query_filtered().all()
+            q = User.query_filtered().order_by(User.email)
+
+            if test_only:
+                q = q.limit(q.count() // 10)
+
+            # get data to not share context between processes
+            q = q.all()
 
         if mode == 'request':
-            X = [u.get_accumulated_request_features() for u in q]
-            y = [1.0 if u.is_bot else 0.0 for u in q]
+            X = []
+            y = []
+
+            with app.app_context():
+                X = [u.get_accumulated_request_features() for u in q]
+                y = [1.0 if u.is_bot else 0.0 for u in q]
 
         elif mode == 'mouse':
             X = []
@@ -98,10 +136,13 @@ class FMClassifier:
                 p.join()
                 print(f'[{i}] Finished')
 
+        if test_only:
+            self.X_test, self.y_test = X, y
 
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
-            X, y, test_size=0.1, random_state=RANDOM_STATE
-        )
+        else:
+            self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
+                X, y, test_size=0.1, random_state=RANDOM_STATE
+            )
 
     def train_model(self):
         print('start training model')
