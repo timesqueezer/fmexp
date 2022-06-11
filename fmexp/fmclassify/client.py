@@ -3,7 +3,7 @@ import flwr as fl
 from fmexp.fmclassify import FMClassifier
 
 
-class FMFederatedClient(fl.client.NumPyClient):
+class FMFederatedClient(fl.client.Client):
     def __init__(self, mode='request'):
         self.fm_classifier = FMClassifier()
         self.fm_classifier.load_data(mode=mode)

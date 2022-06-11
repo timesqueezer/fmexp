@@ -23,8 +23,8 @@ def create_app(
     app.config.from_object('fmexp.config')
     app.config.from_pyfile('fmexp.conf', silent=True)
 
-    from pprint import pprint
-    pprint(app.config)
+    """from pprint import pprint
+    pprint(app.config)"""
 
     db.init_app(app)
     migrate.init_app(app, db)

@@ -24,6 +24,12 @@ fmexp-layout1-frontend:
 fmexp-layout2-frontend:
 	cd fmexp/templates/frontend; yarn build-frontend2-production
 
+classify-federated-server:
+	FLASK_APP=fmexp env/bin/python classify.py -c server
+
+classify-federated-client:
+	FLASK_APP=fmexp env/bin/python classify.py -c client
+
 provision-layout1:
 	ansible-playbook -i ansible/hosts ansible/provision-layout1.yml
 
