@@ -130,7 +130,7 @@ class FMClassifier:
 
                         q.put({ 'X': p_X, 'y': p_y })
 
-                PROCESSES = cpu_count() * 2
+                PROCESSES = cpu_count()
 
                 all_user_ids = [u.uuid for u in q]
                 user_ids_per_proc = chunkify(all_user_ids, PROCESSES)
@@ -171,14 +171,14 @@ class FMClassifier:
                 )
 
                 if cache:
-                    with open(cache_filename, 'w') as f:
+                    with open(cache_filename, 'wb') as f:
                         data = {
                             'X_train': self.X_train,
                             'X_test': self.X_test,
                             'y_train': self.y_train,
                             'y_test': self.y_test,
                         }
-                        f.write(json.dumps(data))
+                        f.write(json.dumps(data, option=json.OPT_SERIALIZE_NUMPY))
 
     def train_model(self):
         print('start training model')
