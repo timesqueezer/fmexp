@@ -2,6 +2,8 @@
 
 set -e
 
+echo "Syncing remote db ${1:-fmexp-layout1} to local db ${2:-fmexp}"
+
 psql -U postgres -c "DROP DATABASE ${2:-fmexp};"
 psql -U postgres -c "CREATE DATABASE ${2:-fmexp};"
 

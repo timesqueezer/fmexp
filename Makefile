@@ -12,6 +12,9 @@ flask-run:
 uwsgi-run:
 	FLASK_ENV=development FLASK_APP=fmexp uwsgi uwsgi.ini
 
+uwsgi-run-fmexp2:
+	FLASK_ENV=development FLASK_APP=fmexp FLASK_ADDITIONAL_CONFIG="fmexp.config2" uwsgi uwsgi.ini
+
 flask-shell:
 	FLASK_ENV=development FLASK_APP=fmexp env/bin/flask shell
 

@@ -4,8 +4,9 @@ from multiprocessing import Process, cpu_count, Queue
 import orjson as json
 
 import numpy as np
-
 import flwr as fl
+import pandas as pd
+import tensorflow as tf
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction import DictVectorizer
@@ -24,9 +25,11 @@ def chunkify(lst, n):
 
 
 class FMClassifier:
-    def __init__(self, n_estimators=100, max_depth=1):
-        self.n_estimators = n_estimators
-        self.max_depth = max_depth
+    def __init__(self, instance='fmexp', mode='request'):
+        self.instance = instance
+        self.mode = mode
+        self.batch_size = 2
+
         self.set_initial_params()
 
     def get_model_parameters(self):
@@ -54,10 +57,36 @@ class FMClassifier:
                 e.set_params(**parameters['estimator_params'][i])
 
     def set_initial_params(self):
-        self.clf = RandomForestClassifier(
+        """self.clf = RandomForestClassifier(
             n_estimators=self.n_estimators,
             max_depth=self.max_depth,
             random_state=RANDOM_STATE,
+        )"""
+        layers = [
+            tf.keras.layers.InputLayer(input_shape=(len(self.get_labels()), )),
+        ]
+
+        if 'request' in self.mode:
+            layers.extend([
+                tf.keras.layers.Dense(10, kernel_initializer='zeros'),
+                tf.keras.layers.Dense(10, kernel_initializer='zeros'),
+                tf.keras.layers.Dense(2, kernel_initializer='zeros'),
+                tf.keras.layers.Softmax(),
+            ])
+
+        elif 'mouse' in self.mode:
+            layers.extend([
+                tf.keras.layers.Dense(10, kernel_initializer='zeros'),
+                tf.keras.layers.Dense(10, kernel_initializer='zeros'),
+                tf.keras.layers.Dense(2, kernel_initializer='zeros'),
+                tf.keras.layers.Softmax(),
+            ])
+
+        self.clf = tf.keras.models.Sequential(layers)
+        self.clf.compile(
+            optimizer=tf.keras.optimizers.SGD(learning_rate=1.0),
+            # loss=tf.keras.losses.MeanSquaredError(),
+            loss=tf.keras.losses.SparseCategoricalCrossentropy(),
         )
 
     """def partition(self, X, y, num_partitions):
@@ -73,7 +102,31 @@ class FMClassifier:
 
         return eval_fn
 
-    def load_data(self, mode='request', test_only=False, cache=True):
+    def get_labels(self):
+        if 'request' in self.mode:
+            return [
+                '% HTTP 400 Requests',
+                '% CSS Requests',
+                '% JS Requests',
+                '% Requests with previously requested URL as part of URL',
+                'Time between first and last request of session',
+            ]
+
+        elif 'mouse' in self.mode:
+            labels = []
+
+            for vector in ['x_prime', 'y_prime', 'theta', 'v_x', 'v_y', 'v', 'a', 'j', 'w']:
+                for measure in ['min', 'max', 'mean', 'std', 'max-min']:
+                    labels.append('{} {}'.format(vector, measure))
+
+            labels.append('t_n time of stroke')
+            labels.append('s_n-1 length of stroke')
+            labels.append('straightness')
+            labels.append('jitter')
+
+            return labels
+
+    def load_data(self, test_only=False, cache=True):
         from fmexp import create_app
         from fmexp.models import (
             DataPoint,
@@ -81,10 +134,14 @@ class FMClassifier:
             DataPointDataType,
         )
 
-        app = create_app()
+        additional_config = None
+        if self.instance == 'fmexp2':
+            additional_config = 'fmexp.config2'
+
+        app = create_app(additional_config=additional_config)
 
         print('loading training data')
-        cache_filename = 'fmexp_cache_{}.json'.format(mode)
+        cache_filename = '{}_cache_{}.json'.format(self.instance, self.mode)
         if cache and os.path.exists(cache_filename):
             with open(cache_filename, 'r') as f:
                 data = json.loads(f.read())
@@ -103,7 +160,7 @@ class FMClassifier:
                 # get data to not share context between processes
                 q = q.all()
 
-            if mode == 'request':
+            if 'request' in self.mode:
                 X = []
                 y = []
 
@@ -111,14 +168,18 @@ class FMClassifier:
                     X = [u.get_accumulated_request_features() for u in q]
                     y = [1.0 if u.is_bot else 0.0 for u in q]
 
-            elif mode == 'mouse':
+            elif 'mouse' in self.mode:
                 X = []
                 y = []
 
-                def get_user_mouse_features(i, n, user_ids, q):
+                def get_user_mouse_features(i, n, user_ids, q, instance):
                     from fmexp import create_app
 
-                    p_app = create_app()
+                    additional_config = None
+                    if instance == 'fmexp2':
+                        additional_config = 'fmexp.config2'
+
+                    p_app = create_app(additional_config)
                     with p_app.app_context():
                         p_X = []
                         p_y = []
@@ -145,7 +206,7 @@ class FMClassifier:
 
                     p = Process(
                         target=get_user_mouse_features,
-                        args=(i, PROCESSES, user_ids, mp_queue, ),
+                        args=(i, PROCESSES, user_ids, mp_queue, self.instance, ),
                     )
                     p.start()
                     print(f'[{i}] Started')
@@ -180,13 +241,23 @@ class FMClassifier:
                         }
                         f.write(json.dumps(data, option=json.OPT_SERIALIZE_NUMPY))
 
-    def train_model(self):
+    def train_model(self, epochs=1):
         print('start training model')
 
-        self.clf.fit(self.X_train, self.y_train)
+        self.clf.fit(
+            self.X_train,
+            self.y_train,
+            epochs=epochs,
+            batch_size=self.batch_size,
+        )
 
     def test_model(self):
-        return self.clf.score(self.X_test, self.y_test)
+        return self.clf.evaluate(
+            self.X_test,
+            self.y_test,
+            batch_size=self.batch_size,
+            return_dict=True,
+        )
 
     def predict(self, user):
         X = np.reshape(

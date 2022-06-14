@@ -7,7 +7,7 @@ from fmbot.request_bot import RequestBot
 from fmbot.mouse_bot import MouseBot
 
 
-def run_request_bot(i, n, runs_per_proc, random_delays, advanced):
+def run_request_bot(i, n, runs_per_proc, random_delays, advanced, instance):
     methods = [
         'visit_pages',
         'visit_blog_pages',
@@ -17,7 +17,12 @@ def run_request_bot(i, n, runs_per_proc, random_delays, advanced):
     ]
 
     for i in range(runs_per_proc):
-        request_bot = RequestBot(args.target, random_delays=random_delays, advanced=advanced)
+        request_bot = RequestBot(
+            args.target,
+            random_delays=random_delays,
+            advanced=advanced,
+            instance=instance,
+        )
 
         shuffled_methods = random.sample(methods, len(methods))
         for method in shuffled_methods:
@@ -28,7 +33,7 @@ def run_request_bot(i, n, runs_per_proc, random_delays, advanced):
                 print(f'[{i}] HERP DERP:', e)
 
 
-def run_mouse_bot(i, n, runs_per_proc, random_delays, advanced):
+def run_mouse_bot(i, n, runs_per_proc, random_delays, advanced, instance):
     methods = [
         'visit_pages',
         'visit_blog_pages',
@@ -38,7 +43,12 @@ def run_mouse_bot(i, n, runs_per_proc, random_delays, advanced):
     ]
 
     for i in range(runs_per_proc):
-        mouse_bot = MouseBot(args.target, random_delays=random_delays, advanced=advanced)
+        mouse_bot = MouseBot(
+            args.target,
+            random_delays=random_delays,
+            advanced=advanced,
+            instance=instance,
+        )
 
         shuffled_methods = random.sample(methods, len(methods))
         for method in shuffled_methods:
@@ -55,10 +65,13 @@ if __name__ == '__main__':
     parser.add_argument('-t', default='http://10.1.1.111:5002', required=False, dest='target')
     parser.add_argument('-n', default=1, required=False, dest='num_runs', type=int)
     parser.add_argument('-r', default=True, required=False, dest='random_delays')
+    parser.add_argument('-i', default='fmexp', required=False, dest='instance', choices=['fmexp', 'fmexp2'])
 
     args = parser.parse_args()
     num_runs = args.num_runs
     random_delays = args.random_delays
+
+    instance = args.instance
 
     PROCESSES = cpu_count() if num_runs >= cpu_count() else num_runs
     runs_per_proc = num_runs // PROCESSES
@@ -92,7 +105,7 @@ if __name__ == '__main__':
 
     print('Starting {} processes'.format(PROCESSES))
     for i in range(PROCESSES):
-        p = Process(target=target, args=(i, PROCESSES, runs_per_proc, random_delays, advanced, ))
+        p = Process(target=target, args=(i, PROCESSES, runs_per_proc, random_delays, advanced, instance, ))
         p_list.append(p)
         p.start()
 

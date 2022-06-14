@@ -23,6 +23,15 @@ def create_app(
     app.config.from_object('fmexp.config')
     app.config.from_pyfile('fmexp.conf', silent=True)
 
+    if additional_config:
+        app.config.from_object(additional_config)
+
+    if os.getenv('FLASK_ADDITIONAL_CONFIG'):
+        app.config.from_object(os.getenv('FLASK_ADDITIONAL_CONFIG'))
+
+    print('additional_config', additional_config)
+    print('SQLALCHEMY_DATABASE_URI', app.config['SQLALCHEMY_DATABASE_URI'])
+
     """from pprint import pprint
     pprint(app.config)"""
 

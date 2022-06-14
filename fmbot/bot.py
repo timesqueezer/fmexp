@@ -8,7 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 
 class Bot:
-    def __init__(self, target_host, mode, random_delays=False, advanced=False):
+    def __init__(self, target_host, mode, random_delays=False, advanced=False, instance='fmexp'):
         self.width = 1920
         self.height = 1080
 
@@ -19,6 +19,8 @@ class Bot:
         self.target_host = target_host
         self.random_delays = random_delays
         self.advanced = advanced
+
+        self.instance = instance
 
         # need first request to be able to set cookie
         self.get('/?fmexp_bot=true&bot_mode={}&random_delays={}&advanced={}'.format(
