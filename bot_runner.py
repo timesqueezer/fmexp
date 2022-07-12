@@ -16,21 +16,21 @@ def run_request_bot(i, n, runs_per_proc, random_delays, advanced, instance):
         'register_and_fill_in_profile',
     ]
 
-    for i in range(runs_per_proc):
-        request_bot = RequestBot(
-            args.target,
-            random_delays=random_delays,
-            advanced=advanced,
-            instance=instance,
-        )
+    for run_counter in range(runs_per_proc):
+        try:
+            request_bot = RequestBot(
+                args.target,
+                random_delays=random_delays,
+                advanced=advanced,
+                instance=instance,
+            )
 
-        shuffled_methods = random.sample(methods, len(methods))
-        for method in shuffled_methods:
-            try:
+            shuffled_methods = random.sample(methods, len(methods))
+            for method in shuffled_methods:
                 getattr(request_bot, method)()
 
-            except Exception as e:
-                print(f'[{i}] HERP DERP:', e)
+        except Exception as e:
+            print(f'[{i}] Run: {run_counter}. HERP DERP:', e)
 
 
 def run_mouse_bot(i, n, runs_per_proc, random_delays, advanced, instance):
@@ -42,21 +42,21 @@ def run_mouse_bot(i, n, runs_per_proc, random_delays, advanced, instance):
         # 'register_and_fill_in_profile',
     ]
 
-    for i in range(runs_per_proc):
-        mouse_bot = MouseBot(
-            args.target,
-            random_delays=random_delays,
-            advanced=advanced,
-            instance=instance,
-        )
+    for run_counter in range(runs_per_proc):
+        try:
+            mouse_bot = MouseBot(
+                args.target,
+                random_delays=random_delays,
+                advanced=advanced,
+                instance=instance,
+            )
 
-        shuffled_methods = random.sample(methods, len(methods))
-        for method in shuffled_methods:
-            try:
+            shuffled_methods = random.sample(methods, len(methods))
+            for method in shuffled_methods:
                 getattr(mouse_bot, method)()
 
-            except Exception as e:
-                print(f'[{i}] HERP DERP:', e)
+        except Exception as e:
+            print(f'[{i}] Run: {run_counter}. HERP DERP:', e)
 
 
 if __name__ == '__main__':
