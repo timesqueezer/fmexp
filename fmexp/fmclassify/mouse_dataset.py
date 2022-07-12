@@ -253,7 +253,7 @@ def get_mouse_dataset_data(mouse_users=[]):
 
         q.put({ 'X': p_X, 'y': p_y })
 
-    PROCESSES = cpu_count()
+    PROCESSES = cpu_count() // 2
     # PROCESSES = 1
 
     all_filepaths = []

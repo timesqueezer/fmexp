@@ -3,8 +3,12 @@ default: install
 install: virtualenv
 
 virtualenv:
-	virtualenv env
+	virtualenv -p python3 env
 	env/bin/pip install --upgrade -r requirements.txt
+
+virtualenv-minimal:
+	virtualenv -p python3 env
+	env/bin/pip install --upgrade -r requirements_minimal.txt
 
 flask-run:
 	FLASK_ENV=development FLASK_APP=fmexp env/bin/flask run --host=0.0.0.0 --port=5002
