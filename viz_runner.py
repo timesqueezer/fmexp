@@ -24,7 +24,7 @@ if __name__ == '__main__':
             user_hist()
 
     elif args.viz_mode == 'roc_curves':
-        roc_curves(modes=[mode], instances=['fmexp1', 'fmexp2'])
+        roc_curves(modes=['fmexp_cache_mouse_dataset21_users.json', 'fmexp_cache_mouse_dataset_user1.json'], instances=['fmexp1', 'fmexp2'])
 
     elif args.viz_mode == 'mouse_heatmap':
         mouse_heatmap()

@@ -14,7 +14,7 @@ if __name__ == '__main__':
     parser.add_argument('-cm', default='mouse', required=False, dest='compare_mode', choices=['request', 'request_advanced', 'mouse', 'mouse_advanced'])
     parser.add_argument('-i', default='fmexp', required=False, dest='instance', choices=['fmexp', 'fmexp2'])
     parser.add_argument('-e', default=5, required=False, dest='epochs')
-    parser.add_argument('-u', default=1, required=False, dest='mouse_user')
+    # parser.add_argument('-u', default=1, required=False, dest='mouse_user')
 
     args = parser.parse_args()
     # client_or_server = args.client_or_server
@@ -22,7 +22,7 @@ if __name__ == '__main__':
     compare_mode = args.compare_mode
     instance = args.instance
     epochs = int(args.epochs)
-    mouse_user = int(args.mouse_user)
+    # mouse_user = int(args.mouse_user)
 
     if mode == 'mouse_dataset':
         print('Training on Mouse')
@@ -34,7 +34,8 @@ if __name__ == '__main__':
 
         classifier.mode = mode
 
-        classifier.load_data(test_only=True, cache=True, mouse_user=mouse_user)
+        # classifier.load_data(test_only=True, cache=True, mouse_users=list(range(1, 22)), cache_instance_name='fmexp')
+        classifier.load_data(test_only=True, cache=True, cache_filename='fmexp_cache_mouse_dataset_user1.json')
         score = classifier.test_model()
         print('Score:', score)
         print()

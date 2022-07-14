@@ -106,10 +106,14 @@ class FMClassifier:
 
             return labels
 
-    def load_data(self, test_only=False, cache=True, mouse_users=[]):
+    def load_data(self, test_only=False, cache=True, mouse_users=[], cache_instance_name=None, cache_filename=None):
         print('loading training data, test_only={}, cache={}'.format(test_only, cache))
 
-        cache_filename = '{}_cache_{}{}.json'.format(self.instance, self.mode, ('{}_users'.format(str(len(mouse_users)))) if self.mode == 'mouse_dataset' and mouse_users else '')
+        cache_filename = cache_filename or '{}_cache_{}{}.json'.format(
+            cache_instance_name or self.instance,
+            self.mode,
+            ('{}_users'.format(str(len(mouse_users)))) if self.mode == 'mouse_dataset' and mouse_users else ''
+        )
         if cache and os.path.exists(cache_filename):
             print('Loading from cache file:', cache_filename)
             with open(cache_filename, 'r') as f:

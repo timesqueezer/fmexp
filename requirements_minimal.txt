@@ -17,3 +17,7 @@ selenium
 scikit-learn
 numpy
 matplotlib
+flwr
+pandas
+
+orjson

@@ -24,10 +24,16 @@ def roc_curves(modes=[], instances=[]):
                 args['mode'] = mode
 
             if instance:
-                args['instance'] = instance
+                cache_filename = None
+                if 'json' in instance:
+                    cache_filename = instance
+                    args['instance'] = 'mouse_dataset'
+
+                else:
+                    args['instance'] = instance
 
             classifier = FMClassifier(**args)
-            classifier.load_data()
+            classifier.load_data(cache_filename=cache_filename)
             classifier.train_model()
             score = classifier.test_model()
             print('Test Score:', score)
