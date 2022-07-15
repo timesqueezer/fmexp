@@ -9,4 +9,4 @@ db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWT()
 
-fmclassifier = FMClassifier()
+fmclassifier = FMClassifier(mode='mouse')

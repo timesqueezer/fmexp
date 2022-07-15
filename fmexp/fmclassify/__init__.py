@@ -1,4 +1,6 @@
 import os
+import time
+
 from multiprocessing import Process, cpu_count, Queue
 
 import orjson as json
@@ -17,7 +19,6 @@ from sklearn.metrics import roc_auc_score, roc_curve, auc
 from pprint import pprint
 
 from fmexp.fmclassify.mouse_dataset import get_mouse_dataset_data
-
 
 RANDOM_STATE = 42
 
@@ -280,11 +281,24 @@ class FMClassifier:
             )
 
     def predict(self, user):
-        X = np.reshape(
-            user.get_accumulated_request_features(),
-            (1, -1)
-        )
-        return self.clf.predict(X)
+        X = None
+
+        if 'request' in self.mode:
+            X = np.reshape(
+                user.get_accumulated_request_features(),
+                (1, -1)
+            )
+
+        elif 'mouse' in self.mode:
+            X = [ac_features for ac_features in user.get_mouse_features()]
+            if (len(X) == 0):
+                return [-1]
+
+        t1 = time.time()
+        score = self.clf.predict(X)
+        t2 = time.time()
+        print('P time:', t2 - t1)
+        return score
 
     def get_roc_auc_score(self):
         y_score = self.clf.predict_proba(self.X_test)[:, 1]

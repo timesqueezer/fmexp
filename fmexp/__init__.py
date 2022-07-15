@@ -47,6 +47,7 @@ def create_app(
         db.create_all()
 
     """with app.app_context():
+        fmclassifier.load_data()
         fmclassifier.train_model()
         print('Model trained')"""
 

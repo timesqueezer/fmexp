@@ -194,6 +194,7 @@ class User(db.Model):
                 user_uuid=self.uuid,
                 data_type=DataPointDataType.MOUSE.value,
             )
+            .order_by(DataPoint.id.desc())
         )
 
         action_chains = []
@@ -251,6 +252,9 @@ class User(db.Model):
                     current_chain_first_dp = None
                     last_dp = None
                     last_td = 0
+
+        if len(action_chains) == 0:
+            action_chains.append(current_chain)
 
         return {
             'action_chains': action_chains,

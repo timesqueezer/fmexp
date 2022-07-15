@@ -6,6 +6,7 @@ from fmexp.fmviz.roc_curves import roc_curves
 from fmexp.fmviz.mouse_heatmap import mouse_heatmap
 from fmexp.fmviz.mouse_hist import mouse_hist
 from fmexp.fmviz.mouse_debug import mouse_debug
+from fmexp.fmviz.speed_per_dp_count import speed_per_dp_count
 
 
 if __name__ == '__main__':
@@ -34,3 +35,6 @@ if __name__ == '__main__':
 
     elif args.viz_mode == 'mouse_debug':
         mouse_debug()
+
+    elif args.viz_mode == 'speed_per_dp_count':
+        speed_per_dp_count()

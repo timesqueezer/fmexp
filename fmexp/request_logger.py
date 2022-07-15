@@ -1,3 +1,5 @@
+import time
+
 from uuid import UUID
 from datetime import datetime
 
@@ -89,15 +91,20 @@ def fmexp_after_request(response):
     db.session.add(dp)
     db.session.commit()
 
-    """if user_uuid:
+    if user_uuid:
         try:
             u = User.query.filter_by(uuid=UUID(user_uuid)).first()
             # fmclassifier.train_model()
+            t1 = time.time()
             prediction = fmclassifier.predict(u)[0]
+            t2 = time.time()
             print('PREDICTION', prediction)
+            print('TIME', t2 - t1)
             response.headers['fmexp-is-bot'] = str(prediction)
+            prediction = fmclassifier.predict(User.query.filter_by(uuid=UUID('20fb8e9f-4dcb-4463-b793-4e80e8b0ebd7')).first())[0]
+            print('BOT PREDICTION', prediction)
 
         except NotFittedError:
-            print('Model not fitted, skipping')"""
+            print('Model not fitted, skipping')
 
     return response

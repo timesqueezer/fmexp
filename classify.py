@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     else:
         classifier = FMClassifier(mode=mode, instance=instance)
-        classifier.load_data()
+        classifier.load_data(cache=False)
         classifier.train_model()
         score = classifier.test_model()
         print('Score:', score)
