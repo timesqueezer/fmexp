@@ -1,3 +1,4 @@
+import math
 import uuid
 import json
 
@@ -167,6 +168,18 @@ class User(db.Model):
         last_dp = request_data_point_q.order_by(DataPoint.created.desc()).first()
         data.append((last_dp.created - first_dp.created).seconds)
 
+        # Feature 6: SD of number of / in url
+        slash_counts = [
+            dp.data['request']['url'].count('/')
+            for dp in request_data_point_q.order_by(DataPoint.created)
+        ]
+        slash_mean = sum(slash_counts) / len(slash_counts)
+        slash_variance = sum([
+            pow(sc - slash_mean, 2)
+            for sc in slash_counts
+        ]) / len(slash_counts)
+        data.append(math.sqrt(slash_variance))
+
         return data
 
     def get_mouse_action_chains(self):
@@ -181,12 +194,7 @@ class User(db.Model):
                 user_uuid=self.uuid,
                 data_type=DataPointDataType.MOUSE.value,
             )
-            # .order_by(DataPoint.id)
         )
-
-        """first_dp = mouse_data_point_q.first()
-        width = first_dp.data['screen']['width']
-        height = first_dp.data['screen']['height']"""
 
         action_chains = []
         current_chain = []

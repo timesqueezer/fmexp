@@ -7,10 +7,17 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 
+RESOLUTIONS = [
+    (1920, 1080),
+    (1366, 768),
+    (2560, 1440),
+]
+
+
 class Bot:
     def __init__(self, target_host, mode, random_delays=False, advanced=False, instance='fmexp'):
-        self.width = 1920
-        self.height = 1080
+        self.width = RESOLUTIONS[0][0]
+        self.height = RESOLUTIONS[0][1]
 
         self.driver = webdriver.Firefox()
         self.driver.set_window_size(self.width, self.height)
