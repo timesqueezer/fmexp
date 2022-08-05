@@ -15,6 +15,7 @@
   "devDependencies": {
     "@babel/core": "^7.17.5",
     "@babel/preset-env": "^7.16.11",
+    "@faker-js/faker": "^7.3.0",
     "@popperjs/core": "^2.11.2",
     "axios": "^0.26.0",
     "babel-loader": "^8.2.3",

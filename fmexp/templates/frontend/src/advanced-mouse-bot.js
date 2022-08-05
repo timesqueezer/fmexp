@@ -1,5 +1,6 @@
 const pt = require('puppeteer');
 const gc = require('ghost-cursor');
+const faker = require('@faker-js/faker').faker;
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const randomDelay = async () => {
@@ -10,6 +11,10 @@ const randomDelay = async () => {
     )
 };
 const range = n => [...Array(n).keys()];
+const randomChoice = (choices) => {
+  var index = Math.floor(Math.random() * choices.length)
+  return choices[index]
+};
 
 
 (async () => {
@@ -23,11 +28,11 @@ const range = n => [...Array(n).keys()];
     const height = parseInt(args[2])
     const methods = args.slice(3)
 
-    console.log('args', args)
+    /* console.log('args', args)
     console.log('targetHost', targetHost)
     console.log('width', width)
     console.log('height', height)
-    console.log('methods', methods)
+    console.log('methods', methods) */
 
     const page = await browser.newPage()//.then(async (page) => {
 
@@ -74,20 +79,68 @@ const range = n => [...Array(n).keys()];
         } else if (method === 'visit_blog_pages') {
             await moveClick('a[href="/blog"]')
 
-            for i in range(num_pages):
-                all_link_els = self.find_elements_by_xpath('//main//a')
-                selected_link = random.choice(all_link_els)
+            const numPages = 10
 
-                self.move_click(selected_link)
 
-                self.back()
+            for (const i of range(numPages)) {
+                const allLinkEls = await page.$$('main a')
+                const selectedLink = randomChoice(allLinkEls)
+                console.log('selectedLink', selectedLink)
+
+                await moveClick(selectedLink)
+                await page.goBack()
+            }
 
         } else if (method === 'visit_random_pages') {
-            
+            const numPages = 100
+
+            for (const i of range(numPages)) {
+                const allLinkEls = await page.$$('a')
+                const selectedLink = randomChoice(allLinkEls)
+                console.log('selectedLink', selectedLink)
+                href = await page.evaluate(el => el.getAttribute('href'), selectedLink)
+                if (href.indexOf('matzradloff.info') === -1) {
+                    await moveClick(selectedLink)
+                }
+            }
+
         } else if (method === 'register') {
-            
+            /* const linkEl = 'a[href="/register"]'
+            await moveClick(linkEl)
+
+            const email_input_el = self.find_element_by_id('email')
+            const emailInputEl = await page.$('#email')
+            fake_email = self.fake.email()
+
+            fake_email_split = fake_email.split('@')
+            fake_email = ''.join([
+                fake_email_split[0],
+                str(random.randint(1, 1000000)),
+                '@',
+                fake_email_split[1],
+            ])
+
+            email_input_el.send_keys(fake_email)
+
+            password = '{}_{}'.format(
+                self.fake.word(),
+                self.fake.word(),
+            )
+
+            password1_input_el = self.find_element_by_id('password')
+            password1_input_el.send_keys(password)
+
+            password2_input_el = self.find_element_by_id('password2')
+            password2_input_el.send_keys(password)
+
+            not_robot_el = self.find_element_by_id('not_robot')
+            self.move_click(not_robot_el)
+
+            submit_el = self.find_element_by_xpath('//button[@type="submit"]')
+            self.move_click(submit_el) */
+
         } else if (method === 'register_and_fill_in_profile') {
-            
+
         }
     }
 
