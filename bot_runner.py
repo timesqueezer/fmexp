@@ -41,7 +41,7 @@ def run_mouse_bot(i, n, runs_per_proc, random_delays, advanced, instance):
         'visit_blog_pages',
         'visit_random_pages',
         'register',
-        'register_and_fill_in_profile',
+        # 'register_and_fill_in_profile',
     ]
 
     for run_counter in range(runs_per_proc):
@@ -86,7 +86,8 @@ if __name__ == '__main__':
 
     instance = args.instance
 
-    PROCESSES = cpu_count() if num_runs >= cpu_count() else num_runs
+    cpu_count = cpu_count() * 2
+    PROCESSES = cpu_count if num_runs >= cpu_count else num_runs
     runs_per_proc = num_runs // PROCESSES
 
     print('Mode:', args.mode)

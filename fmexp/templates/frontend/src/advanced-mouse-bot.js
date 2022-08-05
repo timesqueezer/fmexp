@@ -2,13 +2,17 @@ const pt = require('puppeteer');
 const gc = require('ghost-cursor');
 const faker = require('@faker-js/faker').faker;
 
+
+const MAX_RANDOM_DELAY = 400
+
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-const randomDelay = async () => {
+const randInt = (min, max) => {
+    return Math.random() * (max - min) + min
+}
+const randomDelay = async (max) => {
     const min = 0
-    const max = 200
-    await delay(
-        Math.random() * (max - min) + min
-    )
+    max = max || MAX_RANDOM_DELAY
+    await delay(randInt(min, max))
 };
 const range = n => [...Array(n).keys()];
 const randomChoice = (choices) => {
@@ -19,7 +23,7 @@ const randomChoice = (choices) => {
 
 (async () => {
     const browser = await pt.launch({
-        headless: false,
+        headless: true,
     })
 
     const args = process.argv.slice(2)
@@ -43,7 +47,8 @@ const randomChoice = (choices) => {
         height,
     })
 
-    await page.goto(targetHost + '/?fmexp_bot=true&bot_mode=mouse&random_delays=true&advanced=true')
+    const httpResponse = await page.goto(targetHost + '/?fmexp_bot=true&bot_mode=mouse&random_delays=true&advanced=true')
+    // console.log('headers:', httpResponse.headers())
     await page.setCookie({
         'name': 'fmexp_bot',
         'value': '1',
@@ -52,7 +57,9 @@ const randomChoice = (choices) => {
 
     const moveClick = async (selector) => {
         await randomDelay()
-        await page.waitForSelector(selector)
+        if (typeof selector === 'string') {
+            await page.waitForSelector(selector)
+        }
         await cursor.move(selector)
         await cursor.click()
     }
@@ -60,6 +67,7 @@ const randomChoice = (choices) => {
     // click consent
     const consentSelector = '#consentButton'
     await moveClick(consentSelector)
+    await randomDelay(200)
 
     for (const method of methods) {
         if (method === 'visit_pages') {
@@ -72,20 +80,22 @@ const randomChoice = (choices) => {
             ]
 
             for (tlp of topLevelPages) {
+                await delay(100)
                 const selector = 'a[href="' + tlp + '"]'
                 await moveClick(selector)
             }
 
         } else if (method === 'visit_blog_pages') {
             await moveClick('a[href="/blog"]')
+            await delay(200)
 
             const numPages = 10
 
 
             for (const i of range(numPages)) {
+                await delay(200)
                 const allLinkEls = await page.$$('main a')
                 const selectedLink = randomChoice(allLinkEls)
-                console.log('selectedLink', selectedLink)
 
                 await moveClick(selectedLink)
                 await page.goBack()
@@ -95,49 +105,53 @@ const randomChoice = (choices) => {
             const numPages = 100
 
             for (const i of range(numPages)) {
+                // await delay(1000)
                 const allLinkEls = await page.$$('a')
                 const selectedLink = randomChoice(allLinkEls)
-                console.log('selectedLink', selectedLink)
-                href = await page.evaluate(el => el.getAttribute('href'), selectedLink)
-                if (href.indexOf('matzradloff.info') === -1) {
+                href = await page.evaluateHandle(el => el.getAttribute('href'), selectedLink)
+                if (href && !!href.indexOf && href.indexOf('matzradloff.info') === -1) {
                     await moveClick(selectedLink)
                 }
             }
 
         } else if (method === 'register') {
-            /* const linkEl = 'a[href="/register"]'
+            const linkEl = 'a[href="/register"]'
             await moveClick(linkEl)
+            await delay(200)
 
-            const email_input_el = self.find_element_by_id('email')
             const emailInputEl = await page.$('#email')
-            fake_email = self.fake.email()
+            let fakeEmail = faker.internet.email()
 
-            fake_email_split = fake_email.split('@')
-            fake_email = ''.join([
-                fake_email_split[0],
-                str(random.randint(1, 1000000)),
+            fakeEmailSplit = fakeEmail.split('@')
+            fakeEmail = [
+                fakeEmailSplit[0],
+                randInt(1, 1000000).toString(),
                 '@',
-                fake_email_split[1],
-            ])
+                fakeEmailSplit[1],
+            ].join('')
 
-            email_input_el.send_keys(fake_email)
+            await moveClick(emailInputEl)
+            await page.keyboard.type(fakeEmail)
 
-            password = '{}_{}'.format(
-                self.fake.word(),
-                self.fake.word(),
-            )
+            const password = faker.internet.password(12)
 
-            password1_input_el = self.find_element_by_id('password')
-            password1_input_el.send_keys(password)
+            const emailInputEl1 = await page.$('#password')
+            await moveClick(emailInputEl1)
+            await page.keyboard.type(password)
 
-            password2_input_el = self.find_element_by_id('password2')
-            password2_input_el.send_keys(password)
+            const emailInputEl2 = await page.$('#password2')
+            await moveClick(emailInputEl2)
+            await page.keyboard.type(password)
 
-            not_robot_el = self.find_element_by_id('not_robot')
-            self.move_click(not_robot_el)
+            const notRobotEl = await page.$('#not_robot')
+            await moveClick(notRobotEl)
 
-            submit_el = self.find_element_by_xpath('//button[@type="submit"]')
-            self.move_click(submit_el) */
+            const submitEl = 'button[type=submit]'
+            await moveClick(submitEl)
+
+            const logoutEl = '#logout'
+            await moveClick(logoutEl)
+
 
         } else if (method === 'register_and_fill_in_profile') {
 

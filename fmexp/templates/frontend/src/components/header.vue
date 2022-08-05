@@ -67,7 +67,7 @@ export default {
           <router-link class="nav-link me-3" to="/profile">
             {{ currentUser.email }}
           </router-link>
-          <button class="btn btn-outline-secondary" @click="logout">
+          <button id="logout" class="btn btn-outline-secondary" @click="logout">
             Logout
           </button>
         </div>

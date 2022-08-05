@@ -193,7 +193,12 @@ class FMClassifier:
 
                     PROCESSES = cpu_count()
 
-                    all_user_ids = [u.uuid for u in q]
+                    all_user_ids = [
+                        u.uuid for u in q
+                        if not u.is_bot
+                        or (u.bot_mouse_mode == 'advanced_random_delays' and self.mode == 'mouse_advanced')
+                        or (u.bot_mouse_mode != 'advanced_random_delays' and self.mode != 'mouse_advanced')
+                    ]
                     user_ids_per_proc = chunkify(all_user_ids, PROCESSES)
 
                     processes = []
