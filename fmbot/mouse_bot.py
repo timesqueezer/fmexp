@@ -28,15 +28,16 @@ class MouseBot(Bot):
             instance=instance,
         )
 
-        self.fake = Faker()
+        if not self.advanced_mouse:
+            self.fake = Faker()
 
-        # self.driver.execute_script('const borderWidth = (window.outerWidth - window.innerWidth) / 2')
-        # self.window_x = self.driver.execute_script('return window.screenLeft + window.pageXOffset')
-        self.window_x = self.driver.execute_script('return window.screenX')
-        self.window_y = self.driver.execute_script('return (window.outerHeight - window.innerHeight) + window.screenY')
+            # self.driver.execute_script('const borderWidth = (window.outerWidth - window.innerWidth) / 2')
+            # self.window_x = self.driver.execute_script('return window.screenLeft + window.pageXOffset')
+            self.window_x = self.driver.execute_script('return window.screenX')
+            self.window_y = self.driver.execute_script('return (window.outerHeight - window.innerHeight) + window.screenY')
 
-        print('window_x', self.window_x)
-        print('window_y', self.window_y)
+            print('window_x', self.window_x)
+            print('window_y', self.window_y)
 
     def move_click(self, el):
         self.scroll_wait(el)
@@ -66,7 +67,12 @@ class MouseBot(Bot):
             )
             print(el.location)"""
 
-            pyautogui.moveTo(x, y, duration=(rd / 1000), tween=pyautogui.easeInOutCubic)
+            pyautogui.moveTo(
+                x,
+                y,
+                duration=(rd / 1000),
+                tween=pyautogui.easeInOutCubic,
+            )
 
             self.random_wait()
 

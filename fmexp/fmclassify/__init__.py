@@ -6,9 +6,9 @@ from multiprocessing import Process, cpu_count, Queue
 import orjson as json
 
 import numpy as np
-import flwr as fl
-import pandas as pd
-import tensorflow as tf
+# import flwr as fl
+# import pandas as pd
+# import tensorflow as tf
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction import DictVectorizer
@@ -28,9 +28,17 @@ def chunkify(lst, n):
 
 
 class FMClassifier:
-    def __init__(self, instance='fmexp', mode='request', n_estimators=100, max_depth=1):
+    def __init__(
+        self,
+        instance='fmexp',
+        mode='request',
+        n_estimators=100,
+        max_depth=None,
+        max_features='sqrt',
+    ):
         self.n_estimators = n_estimators
         self.max_depth = max_depth
+        self.max_features = max_features
 
         self.clf_mode = 'random_forest'
         self.instance = instance
@@ -44,6 +52,7 @@ class FMClassifier:
             self.clf = RandomForestClassifier(
                 n_estimators=self.n_estimators,
                 max_depth=self.max_depth,
+                max_features=self.max_features,
                 random_state=RANDOM_STATE,
             )
 

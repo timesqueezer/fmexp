@@ -1,6 +1,7 @@
 <script>
   import axios from 'axios'
   import Cookies from 'js-cookie'
+  import { path } from 'ghost-cursor'
 
   import Header from './components/header'
 
@@ -83,6 +84,13 @@
       updateIsBot(isBot) {
         this.isBot = isBot
       },
+      testMouse() {
+        const route = path(
+          { x: 100, y: 100 },
+          { x: 1000, y: 500 },
+        )
+        console.log('route', route)
+      },
     }
   }
 </script>
@@ -95,6 +103,7 @@
       Loading
     </div>
     <div v-else>
+      <button @click="testMouse">Test Mouse</button>
       <div v-if="showConsentAlert" class="row">
 
         <div class="col-xs-12 col-sm-8 mx-auto">

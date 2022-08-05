@@ -19,9 +19,7 @@ class Bot:
         self.width = RESOLUTIONS[0][0]
         self.height = RESOLUTIONS[0][1]
 
-        self.driver = webdriver.Firefox()
-        self.driver.set_window_size(self.width, self.height)
-        self.driver.implicitly_wait(2)
+        self.advanced_mouse = mode == 'mouse' and advanced is True
 
         self.target_host = target_host
         self.random_delays = random_delays
@@ -29,20 +27,26 @@ class Bot:
 
         self.instance = instance
 
-        # need first request to be able to set cookie
-        self.get('/?fmexp_bot=true&bot_mode={}&random_delays={}&advanced={}'.format(
-            mode,
-            str(random_delays).lower(),
-            str(advanced).lower(),
-        ))
+        if not self.advanced_mouse:
+            self.driver = webdriver.Firefox()
+            self.driver.set_window_size(self.width, self.height)
+            self.driver.implicitly_wait(2)
 
-        self.driver.add_cookie({
-            'name': 'fmexp_bot',
-            'value': '1',
-        })
+            # need first request to be able to set cookie
+            self.get('/?fmexp_bot=true&bot_mode={}&random_delays={}&advanced={}'.format(
+                mode,
+                str(random_delays).lower(),
+                str(advanced).lower(),
+            ))
+
+            self.driver.add_cookie({
+                'name': 'fmexp_bot',
+                'value': '1',
+            })
 
     def __del__(self):
-        self.driver.close()
+        if not self.advanced_mouse:
+            self.driver.close()
 
     def get(self, url):
         full_url = self.target_host + url

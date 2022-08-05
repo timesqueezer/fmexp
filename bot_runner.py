@@ -1,6 +1,8 @@
 import argparse
 import random
 
+import subprocess
+
 from multiprocessing import Process, cpu_count
 
 from fmbot.request_bot import RequestBot
@@ -38,8 +40,8 @@ def run_mouse_bot(i, n, runs_per_proc, random_delays, advanced, instance):
         'visit_pages',
         'visit_blog_pages',
         'visit_random_pages',
-        # 'register',
-        # 'register_and_fill_in_profile',
+        'register',
+        'register_and_fill_in_profile',
     ]
 
     for run_counter in range(runs_per_proc):
@@ -52,8 +54,19 @@ def run_mouse_bot(i, n, runs_per_proc, random_delays, advanced, instance):
             )
 
             shuffled_methods = random.sample(methods, len(methods))
-            for method in shuffled_methods:
-                getattr(mouse_bot, method)()
+            if not mouse_bot.advanced_mouse:
+                for method in shuffled_methods:
+                    getattr(mouse_bot, method)()
+
+            else:
+                subprocess.run([
+                    'node',
+                    'fmexp/templates/frontend/src/advanced-mouse-bot.js',
+                    mouse_bot.target_host,
+                    str(mouse_bot.width),
+                    str(mouse_bot.height),
+                    *shuffled_methods,
+                ])
 
         except Exception as e:
             print(f'[{i}] Run: {run_counter}. HERP DERP:', e)
@@ -62,7 +75,7 @@ def run_mouse_bot(i, n, runs_per_proc, random_delays, advanced, instance):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='FMEXP Bot Runner')
     parser.add_argument('-m', default='request', required=False, dest='mode', choices=['request', 'request_advanced', 'mouse', 'mouse_advanced'])
-    parser.add_argument('-t', default='http://10.1.1.111:5002', required=False, dest='target')
+    parser.add_argument('-t', default='http://localhost:5002', required=False, dest='target')
     parser.add_argument('-n', default=1, required=False, dest='num_runs', type=int)
     parser.add_argument('-r', default=True, required=False, dest='random_delays')
     parser.add_argument('-i', default='fmexp', required=False, dest='instance', choices=['fmexp', 'fmexp2'])

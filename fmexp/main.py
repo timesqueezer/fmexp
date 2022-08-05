@@ -155,7 +155,7 @@ def admin():
 
     dp_alias = aliased(DataPoint)
 
-    user_heatmaps = [
+    """user_heatmaps = [
         (u, url_for('main.admin_user_mouse_heatmap', user_uuid=str(u.uuid))) for u in
         User
         .query_filtered(threshold=200, data_type=DataPointDataType.MOUSE.value)
@@ -167,7 +167,8 @@ def admin():
             .desc()
         )
         .limit(5)
-    ]
+    ]"""
+    user_heatmaps = []
 
 
     bot_heatmaps = [
