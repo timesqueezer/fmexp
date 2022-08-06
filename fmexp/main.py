@@ -199,7 +199,7 @@ def admin_user_mouse_heatmap(user_uuid):
 
     image_file = user_mouse_heatmap(u, show=False)
 
-    return send_file(image_file, mimetype='image/png')
+    return send_file(image_file, mimetype='image/svg+xml')
 
 
 @main.route('/admin/train-model', methods=['POST'])

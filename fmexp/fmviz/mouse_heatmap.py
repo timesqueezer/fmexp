@@ -52,8 +52,8 @@ def user_mouse_heatmap(user, show=True):
 
     ax.scatter(x_positions, y_positions, s=10, c=colors, alpha=0.4, label=f'{len_acs} ACs')
 
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
+    ax.set_xlabel('X coordinate')
+    ax.set_ylabel('Y coordinate')
 
     ax.legend()
 
@@ -65,7 +65,7 @@ def user_mouse_heatmap(user, show=True):
 
     else:
         f = io.BytesIO()
-        fig.savefig(f, format='png')
+        fig.savefig(f, format='svg')
 
         f.seek(0)
 
