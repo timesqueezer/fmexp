@@ -4,6 +4,9 @@ import json
 
 # import flwr as fl
 
+from texttable import Texttable
+import latextable
+
 from fmexp import create_app
 from fmexp.fmclassify import FMClassifier
 from fmexp.fmclassify.client import FMFederatedClient
@@ -88,31 +91,68 @@ if __name__ == '__main__':
 
     elif mode == 'test_parameters':
         data = []
-        """for max_features in [None, 'log2', 'sqrt']:
-            for n_estimators in [10, 50, 100, 150, 200, 1000]:
-                for max_depth in [None, 1, 2, 3, 4]:"""
-        for max_features in ['sqrt']:
-            for n_estimators in [100]:
-                for max_depth in [None]:
-                    classifier = FMClassifier(
-                        mode='mouse_advanced',
-                        instance='fmexp1',
-                        n_estimators=n_estimators,
-                        max_depth=max_depth,
-                        max_features=max_features,
-                    )
-                    classifier.load_data(cache=False)
-                    classifier.train_model()
-                    score = classifier.test_model()
-                    print('n_estimators', n_estimators)
-                    print('max_depth', max_depth)
-                    print('Score:', score)
-                    print()
-                    data.append([max_features, n_estimators, max_depth, score])
+        if False:
+            max_features_list = ['sqrt']
+            n_estimators_list = [100]
+            max_depth_list = [None]
+
+        else:
+            max_features_list = [None, 'log2', 'sqrt']
+            n_estimators_list = [10, 50, 100, 150, 200, 1000]
+            max_depth_list = [None, 1, 2, 3, 4]
+
+        for test_mode in [
+            { 'caption': 'Mouse Data', 'cache_filename': [
+                'feature_cache/final_both_human_mouse.json',
+                'feature_cache/final_bot_mouse_advanced.json',
+            ] },
+            { 'caption': 'Request Data', 'cache_filename': [
+                'feature_cache/final_both_human_request.json',
+                'feature_cache/final_bot_request.json',
+            ] },
+        ]:
+            for max_features in max_features_list:
+                for n_estimators in n_estimators_list:
+                    for max_depth in max_depth_list:
+                        classifier = FMClassifier(
+                            mode='cache_files',
+                            n_estimators=n_estimators,
+                            max_depth=max_depth,
+                            max_features=max_features,
+                        )
+                        classifier.load_data(
+                            cache=True,
+                            cache_filename=test_mode['cache_filename'],
+                        )
+                        classifier.train_model()
+                        score = classifier.test_model()
+                        roc_data = classifier.calc_roc_curve()
+                        precision, recall, f1 = classifier.calc_prf()
+                        # print('n_estimators', n_estimators)
+                        # print('max_depth', max_depth)
+                        # print('Score:', score)
+                        # print()
+                        data.append([max_features, n_estimators, max_depth, score, precision, recall, f1, roc_data['roc_auc']])
 
         print('DATA:')
-        from pprint import pprint
-        pprint(data)
+        print('-------------------')
+        # from pprint import pprint
+        # pprint(data)
+
+        table = Texttable()
+        table.set_cols_align(['l' for _ in range(len(data[0]))])
+        table.set_cols_valign(['m' for _ in range(len(data[0]))])
+        table.add_rows([['Max Features', '# Estimators', 'Max Depth', 'Score', 'Precision', 'Recall', 'F1 Score', 'AUC']])
+        table.add_rows(data[:10])
+
+        fn = 'table_.tex'.format(test_mode['caption'].lower().replace(' ', '_'))
+        print('Writing', fn)
+
+        with open(fn, 'w') as f:
+            f.write(
+                latextable.draw_latex(table, caption=test_mode['caption'])
+            )
+
 
     else:
         classifier = FMClassifier(mode=mode, instance=instance)

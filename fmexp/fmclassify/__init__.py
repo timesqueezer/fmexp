@@ -14,7 +14,14 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.model_selection import train_test_split
 
-from sklearn.metrics import roc_auc_score, roc_curve, auc
+from sklearn.metrics import (
+    roc_auc_score,
+    roc_curve,
+    auc,
+    precision_score,
+    recall_score,
+    f1_score,
+)
 
 from pprint import pprint
 
@@ -133,14 +140,33 @@ class FMClassifier:
             self.mode,
             ('{}_users'.format(str(len(mouse_users)))) if self.mode == 'mouse_dataset' and mouse_users else ''
         )
-        if cache and os.path.exists(cache_filename):
-            print('Loading from cache file:', cache_filename)
-            with open(cache_filename, 'r') as f:
-                data = json.loads(f.read())
-                self.X_train = data['X_train']
-                self.X_test = data['X_test']
-                self.y_train = data['y_train']
-                self.y_test = data['y_test']
+        if cache:
+            if type(cache_filename) == list:
+                self.X_train = []
+                self.X_test = []
+                self.y_train = []
+                self.y_test = []
+
+                for i, cf in enumerate(cache_filename):
+                    print('Loading from cache file:', i, cf)
+                    with open(cf, 'r') as f:
+                        data = json.loads(f.read())
+                        self.X_train.extend(data['X_train'])
+                        self.X_test.extend(data['X_test'])
+                        self.y_train.extend(data['y_train'])
+                        self.y_test.extend(data['y_test'])
+
+            elif os.path.exists(cache_filename):
+                print('Loading from cache file:', cache_filename)
+                with open(cache_filename, 'r') as f:
+                    data = json.loads(f.read())
+                    self.X_train = data['X_train']
+                    self.X_test = data['X_test']
+                    self.y_train = data['y_train']
+                    self.y_test = data['y_test']
+
+            else:
+                print('Invalid cache parameters')
 
         else:
             if self.mode == 'mouse_dataset':
@@ -352,11 +378,27 @@ class FMClassifier:
             roc_auc[i] = auc(fpr[i], tpr[i])
 
         # Compute micro-average ROC curve and ROC area
-        fpr["micro"], tpr["micro"], _ = roc_curve(y_test.ravel(), y_score.ravel())
-        roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
+        fpr['micro'], tpr['micro'], _ = roc_curve(y_test.ravel(), y_score.ravel())
+        roc_auc['micro'] = auc(fpr['micro'], tpr['micro'])
 
         return {
             'fpr': fpr,
             'tpr': tpr,
             'roc_auc': roc_auc,
         }
+
+    def calc_prf(self):
+        y_score = self.clf.predict_proba(self.X_test)
+        return \
+        precision_score(
+            self.y_test,
+            y_score,
+        ),
+        recall_core(
+            self.y_test,
+            y_score,
+        ),
+        f1_score(
+            self.y_test,
+            y_score,
+        )
