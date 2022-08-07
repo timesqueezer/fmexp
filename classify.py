@@ -1,5 +1,7 @@
 import argparse
 
+import json
+
 # import flwr as fl
 
 from fmexp import create_app
@@ -22,6 +24,7 @@ if __name__ == '__main__':
             'mouse_advanced',
             'mouse_dataset',
             'test_parameters',
+            'data_loader',
         ]
     )
     parser.add_argument('-cm', default='mouse', required=False, dest='compare_mode', choices=['request', 'request_advanced', 'mouse', 'mouse_advanced'])
@@ -53,6 +56,36 @@ if __name__ == '__main__':
         print('Score:', score)
         print()
 
+    elif mode == 'data_loader':
+        cache_filename = f'final_bot_mouse.json'
+        classifier = FMClassifier(mode='mouse', instance='fmexp')
+        classifier.load_data(cache=True, cache_filename=cache_filename, bot_only=True)
+
+        # combine human data from both instances:
+        """cache_filename = 'final_{}_human_{}.json'
+        for _mode in ['mouse', 'request']:
+            formatted_filename1 = cache_filename.format('fmexp1', _mode)
+            formatted_filename2 = cache_filename.format('fmexp2', _mode)
+            print('Loading cache files:', formatted_filename1, formatted_filename2)
+            data_total = {
+                'X_train': [],
+                'X_test': [],
+                'y_train': [],
+                'y_test': [],
+            }
+            for fn in [formatted_filename1, formatted_filename2]:
+                with open(fn, 'r') as f:
+                    data = json.loads(f.read())
+                    data_total['X_train'].extend(data['X_train'])
+                    data_total['X_test'].extend(data['X_test'])
+                    data_total['y_train'].extend(data['y_train'])
+                    data_total['y_test'].extend(data['y_test'])
+
+            both_fn = 'final_both_human_{}.json'.format(_mode)
+            with open(both_fn, 'w') as f:
+                print('Saving to', both_fn)
+                f.write(json.dumps(data_total))"""
+
     elif mode == 'test_parameters':
         data = []
         """for max_features in [None, 'log2', 'sqrt']:
@@ -62,13 +95,13 @@ if __name__ == '__main__':
             for n_estimators in [100]:
                 for max_depth in [None]:
                     classifier = FMClassifier(
-                        mode='request_advanced',
+                        mode='mouse_advanced',
                         instance='fmexp1',
                         n_estimators=n_estimators,
                         max_depth=max_depth,
                         max_features=max_features,
                     )
-                    classifier.load_data()
+                    classifier.load_data(cache=False)
                     classifier.train_model()
                     score = classifier.test_model()
                     print('n_estimators', n_estimators)

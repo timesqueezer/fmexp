@@ -116,7 +116,16 @@ class FMClassifier:
 
             return labels
 
-    def load_data(self, test_only=False, cache=True, mouse_users=[], cache_instance_name=None, cache_filename=None):
+    def load_data(
+        self,
+        test_only=False,
+        cache=True,
+        mouse_users=[],
+        cache_instance_name=None,
+        cache_filename=None,
+        bot_only=False,
+        human_only=False,
+    ):
         print('loading training data, test_only={}, cache={}'.format(test_only, cache))
 
         cache_filename = cache_filename or '{}_cache_{}{}.json'.format(
@@ -153,6 +162,12 @@ class FMClassifier:
 
                 with app.app_context():
                     q = User.query_filtered().order_by(User.email)
+
+                    if bot_only:
+                        q = q.filter(User.is_bot == True)
+
+                    elif human_only:
+                        q = q.filter(User.is_bot == False)
 
                     if test_only:
                         q = q.limit(q.count() // 10)
@@ -199,6 +214,7 @@ class FMClassifier:
                         or (u.bot_mouse_mode == 'advanced_random_delays' and self.mode == 'mouse_advanced')
                         or (u.bot_mouse_mode != 'advanced_random_delays' and self.mode != 'mouse_advanced')
                     ]
+                    print('all_user_ids', len(all_user_ids))
                     user_ids_per_proc = chunkify(all_user_ids, PROCESSES)
 
                     processes = []
@@ -255,11 +271,13 @@ class FMClassifier:
         num_bots_test = len([y for y in self.y_test if y == 1.0])
         num_humans_test = num_test_total - num_bots_test
 
-        print('Loaded Data. Bots: {}/{}, Humans: {}/{}'.format(
+        print('Loaded Data. Bots: {}/{} ({} total), Humans: {}/{} ({} total)'.format(
             num_bots_train,
             num_bots_test,
+            num_bots_train + num_bots_test,
             num_humans_train,
             num_humans_test,
+            num_humans_train + num_humans_test,
         ))
 
     def train_model(self, epochs=1):

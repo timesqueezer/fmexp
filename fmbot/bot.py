@@ -5,6 +5,7 @@ from selenium import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.firefox.options import Options
 
 
 RESOLUTIONS = [
@@ -28,7 +29,9 @@ class Bot:
         self.instance = instance
 
         if not self.advanced_mouse:
-            self.driver = webdriver.Firefox()
+            options = Options()
+            # options.headless = True
+            self.driver = webdriver.Firefox(options=options)
             self.driver.set_window_size(self.width, self.height)
             self.driver.implicitly_wait(2)
 
