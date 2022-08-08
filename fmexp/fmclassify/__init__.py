@@ -292,10 +292,29 @@ class FMClassifier:
         num_train_total = len(self.y_train)
         num_bots_train = len([y for y in self.y_train if y == 1.0])
         num_humans_train = num_train_total - num_bots_train
+        # num_humans_train = len([y for y in self.y_train if y == 0.0])
 
         num_test_total = len(self.y_test)
         num_bots_test = len([y for y in self.y_test if y == 1.0])
         num_humans_test = num_test_total - num_bots_test
+
+        """if num_bots_train > num_humans_train:
+            bots_train = [y for y in self.y_train if y == 1.0][:num_humans_train]
+            humans_train = [y for y in self.y_train if y == 0.0]
+            self.y_train = [*bots_train, *humans_train]
+
+            num_bots_train = len(bots_train)
+            num_humans_train = len(humans_train)
+            num_train_total = len(self.y_train)
+
+        if num_bots_test > num_humans_test:
+            bots_test = [y for y in self.y_test if y == 1.0][:num_humans_test]
+            humans_test = [y for y in self.y_test if y == 0.0]
+            self.y_test = [*bots_test, *humans_test]
+
+            num_bots_test = len(bots_test)
+            num_humans_test = len(humans_test)
+            num_test_total = len(self.y_test)"""
 
         print('Loaded Data. Bots: {}/{} ({} total), Humans: {}/{} ({} total)'.format(
             num_bots_train,
@@ -388,17 +407,21 @@ class FMClassifier:
         }
 
     def calc_prf(self):
-        y_score = self.clf.predict_proba(self.X_test)
-        return \
-        precision_score(
-            self.y_test,
-            y_score,
-        ),
-        recall_core(
-            self.y_test,
-            y_score,
-        ),
-        f1_score(
-            self.y_test,
+        y_score = [round(i) for i in list(self.clf.predict_proba(self.X_test)[:, 1])]
+        # print('self.y_test', [m for m in self.y_test if type(m) != float])
+        # print('y_score', [m for m in y_score if type(m) != float])
+        y_test = [round(i) for i in self.y_test]
+        precision = precision_score(
+            y_test,
             y_score,
         )
+        recall = recall_score(
+            y_test,
+            y_score,
+        )
+        f1 = f1_score(
+            y_test,
+            y_score,
+        )
+
+        return precision, recall, f1

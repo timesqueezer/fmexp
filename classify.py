@@ -4,12 +4,18 @@ import json
 
 # import flwr as fl
 
+from multiprocessing import Process, cpu_count, Queue
+
 from texttable import Texttable
 import latextable
 
 from fmexp import create_app
 from fmexp.fmclassify import FMClassifier
 from fmexp.fmclassify.client import FMFederatedClient
+
+
+def chunkify(lst, n):
+    return [ lst[i::n] for i in range(n) ]
 
 
 if __name__ == '__main__':
@@ -90,16 +96,23 @@ if __name__ == '__main__':
                 f.write(json.dumps(data_total))"""
 
     elif mode == 'test_parameters':
-        data = []
-        if False:
-            max_features_list = ['sqrt']
-            n_estimators_list = [100]
+        data_mouse = []
+        data_request = []
+
+        # TODO:: test_mode name duplicate dings
+        param_test_mode = True
+
+        if not param_test_mode:
+            max_features_list = [None]
+            n_estimators_list = [10]
             max_depth_list = [None]
 
         else:
             max_features_list = [None, 'log2', 'sqrt']
             n_estimators_list = [10, 50, 100, 150, 200, 1000]
             max_depth_list = [None, 1, 2, 3, 4]
+
+        test_scenarios = []
 
         for test_mode in [
             { 'caption': 'Mouse Data', 'cache_filename': [
@@ -114,49 +127,121 @@ if __name__ == '__main__':
             for max_features in max_features_list:
                 for n_estimators in n_estimators_list:
                     for max_depth in max_depth_list:
-                        classifier = FMClassifier(
-                            mode='cache_files',
-                            n_estimators=n_estimators,
-                            max_depth=max_depth,
-                            max_features=max_features,
-                        )
-                        classifier.load_data(
-                            cache=True,
-                            cache_filename=test_mode['cache_filename'],
-                        )
-                        classifier.train_model()
-                        score = classifier.test_model()
-                        roc_data = classifier.calc_roc_curve()
-                        precision, recall, f1 = classifier.calc_prf()
-                        # print('n_estimators', n_estimators)
-                        # print('max_depth', max_depth)
-                        # print('Score:', score)
-                        # print()
-                        data.append([max_features, n_estimators, max_depth, score, precision, recall, f1, roc_data['roc_auc']])
+                        test_scenarios.append([
+                            test_mode,
+                            max_features,
+                            n_estimators,
+                            max_depth,
+                        ])
 
-        print('DATA:')
-        print('-------------------')
-        # from pprint import pprint
-        # pprint(data)
+        def run_scenarios(i, n, _scenarios, q):
+            this_data = []
+            for s in _scenarios:
+                test_mode = s[0]
+                max_features = s[1]
+                n_estimators = s[2]
+                max_depth = s[3]
+                classifier = FMClassifier(
+                    mode='cache_files',
+                    n_estimators=n_estimators,
+                    max_depth=max_depth,
+                    max_features=max_features,
+                )
+                classifier.load_data(
+                    cache=True,
+                    cache_filename=test_mode['cache_filename'],
+                )
+                classifier.train_model()
+                score = classifier.test_model()
+                roc_data = classifier.calc_roc_curve()
+                precision, recall, f1 = classifier.calc_prf()
+                # print('n_estimators', n_estimators)
+                # print('max_depth', max_depth)
+                # print('Score:', score)
+                # print()
+                this_data.append([max_features, n_estimators, max_depth, score, precision, recall, f1, roc_data['roc_auc'][1]])
 
-        table = Texttable()
-        table.set_cols_align(['l' for _ in range(len(data[0]))])
-        table.set_cols_valign(['m' for _ in range(len(data[0]))])
-        table.add_rows([['Max Features', '# Estimators', 'Max Depth', 'Score', 'Precision', 'Recall', 'F1 Score', 'AUC']])
-        table.add_rows(data[:10])
+            print(f'[{i}] ', this_data)
+            q.put({ 'scenarios': this_data })
 
-        fn = 'table_.tex'.format(test_mode['caption'].lower().replace(' ', '_'))
-        print('Writing', fn)
+        PROCESSES = cpu_count() if len(test_scenarios) >= cpu_count() else len(test_scenarios)
 
-        with open(fn, 'w') as f:
-            f.write(
-                latextable.draw_latex(table, caption=test_mode['caption'])
+        scenarios_per_proc = chunkify(test_scenarios, PROCESSES)
+
+        processes = []
+        mp_queues = []
+
+        for i in range(PROCESSES):
+            mp_queue = Queue()
+            mp_queues.append(mp_queue)
+            this_scenarios = scenarios_per_proc[i]
+
+            p = Process(
+                target=run_scenarios,
+                args=(i, PROCESSES, this_scenarios, mp_queue, ),
             )
+            p.start()
+            print(f'[{i}] Started')
+            processes.append(p)
+
+        for i, p in enumerate(processes):
+            print(f'[{i}] Awaiting result')
+            result = mp_queues[i].get()
+            for i_s, sc in enumerate(result['scenarios']):
+                if 'Mouse' in scenarios_per_proc[i][i_s][0]['caption']:
+                    data_mouse.append(sc)
+                else:
+                    data_request.append(sc)
+
+            print(f'[{i}] Got result')
+
+        for i, p in enumerate(processes):
+            p.join()
+            print(f'[{i}] Finished')
+
+        print('data_request', data_request)
+        print('data_mouse', data_mouse)
+
+        for i, data in enumerate([data_request, data_mouse]):
+            print('DATA:')
+            print('-------------------')
+            # from pprint import pprint
+            # pprint(data)
+
+            table = Texttable()
+            table.set_cols_align(['l' for _ in range(len(data[0]))])
+            table.set_cols_valign(['m' for _ in range(len(data[0]))])
+            rows =[
+                [
+                    'Max Features',
+                    '# Estimators',
+                    'Max Depth',
+                    'Accuracy',
+                    'Precision',
+                    'Recall',
+                    'F1 Score',
+                    'AUC',
+                ]
+            ]
+            # table.add_rows(data[:10])
+            rows.extend(sorted(data, key=lambda r: r[3], reverse=True))
+            table.add_rows(rows)
+
+            fn = 'table_{}{}.tex'.format('request' if i == 0 else 'mouse', '_param_test' if param_test_mode else '')
+            print('Writing', fn)
+
+            with open(fn, 'w') as f:
+                f.write(
+                    latextable.draw_latex(table)
+                )
 
 
     else:
         classifier = FMClassifier(mode=mode, instance=instance)
-        classifier.load_data(cache=False)
+        classifier.load_data(cache=True, cache_filename=[
+            'feature_cache/final_both_human_request.json',
+            'feature_cache/final_bot_request.json',
+        ])
         classifier.train_model()
         score = classifier.test_model()
         print('Score:', score)
