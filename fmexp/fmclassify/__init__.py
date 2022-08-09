@@ -27,7 +27,7 @@ from pprint import pprint
 
 from fmexp.fmclassify.mouse_dataset import get_mouse_dataset_data
 
-RANDOM_STATE = 42
+RANDOM_STATE = 44
 
 
 def chunkify(lst, n):
@@ -61,6 +61,7 @@ class FMClassifier:
                 max_depth=self.max_depth,
                 max_features=self.max_features,
                 random_state=RANDOM_STATE,
+                n_jobs=-1,
             )
 
         else:
@@ -332,10 +333,14 @@ class FMClassifier:
                 self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
                     X, y, test_size=0.1, random_state=RANDOM_STATE
                 )
+                print('LENGTHS AFTER SPLIT:')
+                print('y_train', len(self.y_train))
+                print('y_test', len(self.y_test))
+                print('X_train', len(self.X_train))
+                print('X_test', len(self.X_test))
 
             if save_cache:
                 with open(cache_filename, 'wb') as f:
-                    print('CHECKECKEKC', self.X_train[0:20])
                     data = {
                         'X_train': self.X_train,
                         'X_test': self.X_test,
@@ -347,11 +352,13 @@ class FMClassifier:
         num_train_total = len(self.y_train)
         num_bots_train = len([y for y in self.y_train if y == 1.0])
         num_humans_train = num_train_total - num_bots_train
+        num_humans_train_wtf = len([y for y in self.y_train if y == 0.0])
         # num_humans_train = len([y for y in self.y_train if y == 0.0])
 
         num_test_total = len(self.y_test)
         num_bots_test = len([y for y in self.y_test if y == 1.0])
         num_humans_test = num_test_total - num_bots_test
+        num_humans_test_wtf = len([y for y in self.y_test if y == 0.0])
 
         if bot_human_same_number:
             if num_bots_train > num_humans_train:
@@ -380,7 +387,7 @@ class FMClassifier:
                 num_humans_test = len(humans_y_test)
                 num_test_total = len(self.y_test)
 
-        print('CHECKECKEKC 2', self.X_train[0:20])
+        # print('CHECKECKEKC 2', self.X_train[0:20])
         print('Loaded Data. Bots: {}/{} ({} total), Humans: {}/{} ({} total)'.format(
             num_bots_train,
             num_bots_test,

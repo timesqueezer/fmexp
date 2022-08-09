@@ -68,10 +68,9 @@ if __name__ == '__main__':
 
     elif mode == 'data_loader':
         # cache_filename = 'final_human_request_old.json'
-        cache_filename = 'old_all.json'
+        cache_filename = 'old_bot.json'
         classifier = FMClassifier(mode='request', instance='fmexp')
-        # classifier.load_data(cache=False, save_cache=True, cache_filename=cache_filename, human_only=True)
-        classifier.load_data(cache=False, save_cache=True, cache_filename=cache_filename)
+        classifier.load_data(cache=False, save_cache=True, cache_filename=cache_filename, bot_only=True)
 
         # combine human data from both instances:
         """cache_filename = 'final_{}_human_{}.json'
@@ -123,8 +122,7 @@ if __name__ == '__main__':
             #    'feature_cache/final_bot_mouse_advanced.json',
             #] },
             { 'caption': 'Request Data', 'cache_filename': [
-                'feature_cache/final_both_human_request.json',
-                'final_bot_request_old.json',
+                'old_all.json',
             ] },
         ]:
             for max_features in max_features_list:
@@ -208,6 +206,8 @@ if __name__ == '__main__':
         for i, data in enumerate([data_request, data_mouse]):
             print('DATA:')
             print('-------------------')
+            if len(data) == 0:
+                continue
             # from pprint import pprint
             # pprint(data)
 
@@ -241,14 +241,25 @@ if __name__ == '__main__':
     elif mode == 'scenarios':
         for sc in [
             {
+                'disabled': True,
                 'mode': 'request',
                 'train_test': [
-                    # 'final_human_request_old.json',
-                    # 'final_bot_request_old.json',
+                    # 'old_bot.json',
+                    # 'old_human.json',
+                    'old_all.json',
+                ],
+            },
+            {
+                'disabled': False,
+                'mode': 'request',
+                'train_test': [
                     'old_all.json',
                 ],
             },
         ]:
+            if sc.get('disabled'):
+                continue
+
             print('SC:', sc)
             sc_mode = sc.get('mode') or mode
             classifier = FMClassifier(
@@ -257,6 +268,7 @@ if __name__ == '__main__':
             )
             classifier.load_data(
                 cache=True,
+                save_cache=False,
                 cache_filename=sc,
                 bot_human_same_number=True,
             )
