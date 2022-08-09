@@ -127,11 +127,13 @@ class FMClassifier:
         self,
         test_only=False,
         cache=True,
+        save_cache=False,
         mouse_users=[],
         cache_instance_name=None,
         cache_filename=None,
         bot_only=False,
         human_only=False,
+        bot_human_same_number=False,
     ):
         print('loading training data, test_only={}, cache={}'.format(test_only, cache))
 
@@ -141,12 +143,12 @@ class FMClassifier:
             ('{}_users'.format(str(len(mouse_users)))) if self.mode == 'mouse_dataset' and mouse_users else ''
         )
         if cache:
-            if type(cache_filename) == list:
-                self.X_train = []
-                self.X_test = []
-                self.y_train = []
-                self.y_test = []
+            self.X_train = []
+            self.X_test = []
+            self.y_train = []
+            self.y_test = []
 
+            if type(cache_filename) == list:
                 for i, cf in enumerate(cache_filename):
                     print('Loading from cache file:', i, cf)
                     with open(cf, 'r') as f:
@@ -155,6 +157,58 @@ class FMClassifier:
                         self.X_test.extend(data['X_test'])
                         self.y_train.extend(data['y_train'])
                         self.y_test.extend(data['y_test'])
+
+            elif type(cache_filename) == dict:
+                if 'train_test' in cache_filename.keys():
+                    filenames = []
+                    cache_train_test = cache_filename['train_test']
+                    if type(cache_train_test) == str:
+                        filenames.append(cache_train_test)
+                    else:
+                        filenames.extend(cache_train_test)
+
+                    for i, cf in enumerate(filenames):
+                        print('Loading train + test data from cache file:', i, cf)
+                        with open(cf, 'r') as f:
+                            data = json.loads(f.read())
+                            self.X_train.extend(data['X_train'])
+                            self.X_test.extend(data['X_test'])
+                            self.y_train.extend(data['y_train'])
+                            self.y_test.extend(data['y_test'])
+
+                else:
+                    cache_train = cache_filename['train']
+                    cache_test = cache_filename['test']
+
+                    cache_train_filenames = []
+                    cache_test_filenames = []
+                    if type(cache_train) == str:
+                        cache_train_filenames.append(cache_train)
+                    else:
+                        cache_train_filenames.extend(cache_train)
+
+                    if type(cache_test) == str:
+                        cache_test_filenames.append(cache_test)
+                    else:
+                        cache_test_filenames.extend(cache_test)
+
+                    for i, cf in enumerate(cache_train_filenames):
+                        print('Loading training data from cache file:', i, cf)
+                        with open(cf, 'r') as f:
+                            data = json.loads(f.read())
+                            self.X_train.extend(data['X_train'])
+                            self.X_train.extend(data['X_test'])
+                            self.y_train.extend(data['y_train'])
+                            self.y_train.extend(data['y_test'])
+
+                    for i, cf in enumerate(cache_test_filenames):
+                        print('Loading testing data from cache file:', i, cf)
+                        with open(cf, 'r') as f:
+                            data = json.loads(f.read())
+                            self.X_test.extend(data['X_train'])
+                            self.X_test.extend(data['X_test'])
+                            self.y_test.extend(data['y_train'])
+                            self.y_test.extend(data['y_test'])
 
             elif os.path.exists(cache_filename):
                 print('Loading from cache file:', cache_filename)
@@ -279,8 +333,9 @@ class FMClassifier:
                     X, y, test_size=0.1, random_state=RANDOM_STATE
                 )
 
-            if cache:
+            if save_cache:
                 with open(cache_filename, 'wb') as f:
+                    print('CHECKECKEKC', self.X_train[0:20])
                     data = {
                         'X_train': self.X_train,
                         'X_test': self.X_test,
@@ -298,24 +353,34 @@ class FMClassifier:
         num_bots_test = len([y for y in self.y_test if y == 1.0])
         num_humans_test = num_test_total - num_bots_test
 
-        """if num_bots_train > num_humans_train:
-            bots_train = [y for y in self.y_train if y == 1.0][:num_humans_train]
-            humans_train = [y for y in self.y_train if y == 0.0]
-            self.y_train = [*bots_train, *humans_train]
+        if bot_human_same_number:
+            if num_bots_train > num_humans_train:
+                bots_y_train = [y for y in self.y_train if y == 1.0][:num_humans_train]
+                bots_X_train = [X for i, X in enumerate(self.X_train) if self.y_train[i] == 1.0][:num_humans_train]
 
-            num_bots_train = len(bots_train)
-            num_humans_train = len(humans_train)
-            num_train_total = len(self.y_train)
+                humans_y_train = [y for y in self.y_train if y == 0.0]
+                humans_X_train = [X for i, X in enumerate(self.X_train) if self.y_train[i] == 0.0]
+                self.y_train = [*bots_y_train, *humans_y_train]
+                self.X_train = [*bots_X_train, *humans_X_train]
 
-        if num_bots_test > num_humans_test:
-            bots_test = [y for y in self.y_test if y == 1.0][:num_humans_test]
-            humans_test = [y for y in self.y_test if y == 0.0]
-            self.y_test = [*bots_test, *humans_test]
+                num_bots_train = len(bots_y_train)
+                num_humans_train = len(humans_y_train)
+                num_train_total = len(self.y_train)
 
-            num_bots_test = len(bots_test)
-            num_humans_test = len(humans_test)
-            num_test_total = len(self.y_test)"""
+            if num_bots_test > num_humans_test:
+                bots_y_test = [y for y in self.y_test if y == 1.0][:num_humans_test]
+                bots_X_test = [X for i, X in enumerate(self.X_test) if self.y_test[i] == 1.0][:num_humans_test]
 
+                humans_y_test = [y for y in self.y_test if y == 0.0]
+                humans_X_test = [X for i, X in enumerate(self.X_test) if self.y_test[i] == 0.0]
+                self.y_test = [*bots_y_test, *humans_y_test]
+                self.X_test = [*bots_X_test, *humans_X_test]
+
+                num_bots_test = len(bots_y_test)
+                num_humans_test = len(humans_y_test)
+                num_test_total = len(self.y_test)
+
+        print('CHECKECKEKC 2', self.X_train[0:20])
         print('Loaded Data. Bots: {}/{} ({} total), Humans: {}/{} ({} total)'.format(
             num_bots_train,
             num_bots_test,

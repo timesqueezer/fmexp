@@ -34,6 +34,7 @@ if __name__ == '__main__':
             'mouse_dataset',
             'test_parameters',
             'data_loader',
+            'scenarios',
         ]
     )
     parser.add_argument('-cm', default='mouse', required=False, dest='compare_mode', choices=['request', 'request_advanced', 'mouse', 'mouse_advanced'])
@@ -66,9 +67,11 @@ if __name__ == '__main__':
         print()
 
     elif mode == 'data_loader':
-        cache_filename = f'final_bot_mouse.json'
-        classifier = FMClassifier(mode='mouse', instance='fmexp')
-        classifier.load_data(cache=True, cache_filename=cache_filename, bot_only=True)
+        # cache_filename = 'final_human_request_old.json'
+        cache_filename = 'old_all.json'
+        classifier = FMClassifier(mode='request', instance='fmexp')
+        # classifier.load_data(cache=False, save_cache=True, cache_filename=cache_filename, human_only=True)
+        classifier.load_data(cache=False, save_cache=True, cache_filename=cache_filename)
 
         # combine human data from both instances:
         """cache_filename = 'final_{}_human_{}.json'
@@ -115,13 +118,13 @@ if __name__ == '__main__':
         test_scenarios = []
 
         for test_mode in [
-            { 'caption': 'Mouse Data', 'cache_filename': [
-                'feature_cache/final_both_human_mouse.json',
-                'feature_cache/final_bot_mouse_advanced.json',
-            ] },
+            #{ 'caption': 'Mouse Data', 'cache_filename': [
+            #    'feature_cache/final_both_human_mouse.json',
+            #    'feature_cache/final_bot_mouse_advanced.json',
+            #] },
             { 'caption': 'Request Data', 'cache_filename': [
                 'feature_cache/final_both_human_request.json',
-                'feature_cache/final_bot_request.json',
+                'final_bot_request_old.json',
             ] },
         ]:
             for max_features in max_features_list:
@@ -235,13 +238,42 @@ if __name__ == '__main__':
                     latextable.draw_latex(table)
                 )
 
+    elif mode == 'scenarios':
+        for sc in [
+            {
+                'mode': 'request',
+                'train_test': [
+                    # 'final_human_request_old.json',
+                    # 'final_bot_request_old.json',
+                    'old_all.json',
+                ],
+            },
+        ]:
+            print('SC:', sc)
+            sc_mode = sc.get('mode') or mode
+            classifier = FMClassifier(
+                mode=sc_mode,
+                instance=instance,
+            )
+            classifier.load_data(
+                cache=True,
+                cache_filename=sc,
+                bot_human_same_number=True,
+            )
+            classifier.train_model()
+            score = classifier.test_model()
+            print('Score:', score)
+            print()
 
     else:
-        classifier = FMClassifier(mode=mode, instance=instance)
-        classifier.load_data(cache=True, cache_filename=[
-            'feature_cache/final_both_human_request.json',
-            'feature_cache/final_bot_request.json',
-        ])
+        classifier = FMClassifier(
+            mode=mode,
+            instance=instance,
+        )
+        classifier.load_data(
+            cache=False,
+        )
         classifier.train_model()
         score = classifier.test_model()
         print('Score:', score)
+        print()
