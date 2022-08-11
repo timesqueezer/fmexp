@@ -36,6 +36,7 @@ if __name__ == '__main__':
             'test_parameters',
             'data_loader',
             'scenarios',
+            'limit',
         ]
     )
     parser.add_argument('-cm', default='mouse', required=False, dest='compare_mode', choices=['request', 'request_advanced', 'mouse', 'mouse_advanced'])
@@ -70,23 +71,43 @@ if __name__ == '__main__':
     elif mode == 'data_loader':
         combine_mode = True
         if not combine_mode:
-            classifier = FMClassifier(mode='request', instance='fmexp')
-            # classifier = FMClassifier(mode='request', instance='fmexp2')
+            # for instance in ['fmexp']:
+            for instance in ['fmexp', 'fmexp2']:
+                for limit in [1, 2, 3, 4, 5, 10, 20, 50, 100, 200, None]:
+                    classifier = FMClassifier(mode='request', instance=instance)
+                    # classifier = FMClassifier(mode='request', instance='fmexp2')
 
-            # cache_filename = 'old_bot.json'
+                    # cache_filename = 'old_bot.json'
 
-            cache_filename = 'final_bot_request_new_features.json'
-            # cache_filename = 'final_bot_request_new_features.json'
-            classifier.load_data(cache=False, save_cache=True, cache_filename=cache_filename, bot_only=True)
-            # classifier.load_data(cache=False, save_cache=True, cache_filename=cache_filename, human_only=True)
+                    # cache_filename = 'final_bot_request_new_features.json'
+                    # cache_filename = 'final_bot_request_new_features.json'
+                    cache_filename = 'final_{}_human_request_limit_{}.json'.format(
+                        instance,
+                        limit,
+                    )
+                    try:
+                        classifier.load_data(
+                            cache=False,
+                            save_cache=True,
+                            cache_filename=cache_filename,
+                            human_only=True,
+                            limit=limit,
+                        )
+                    except Exception as e:
+                        print('DERP DEPRKLWEOKRNERW', e, limit)
+                    # classifier.load_data(cache=False, save_cache=True, cache_filename=cache_filename, human_only=True)
 
         else:
-            # combine human data from both instances:
+            """# combine human data from both instances:
             cache_filename = 'final_{}_human_{}.json'
             # for _mode in ['mouse', 'request']:
-            for _mode in ['request_new_features']:
-                formatted_filename1 = cache_filename.format('fmexp1', _mode)
-                formatted_filename2 = cache_filename.format('fmexp2', _mode)
+            for _mode in ['request_new_features']:"""
+
+            for limit in [1, 2, 3, 4, 5, 10, 20, 50, 100, 200, None]:
+                cache_filename = 'final_{}_human_request_limit_{}.json'
+
+                formatted_filename1 = cache_filename.format('fmexp', limit)
+                formatted_filename2 = cache_filename.format('fmexp2', limit)
                 print('Loading cache files:', formatted_filename1, formatted_filename2)
                 data_total = {
                     'X_train': [],
@@ -102,7 +123,7 @@ if __name__ == '__main__':
                         data_total['y_train'].extend(data['y_train'])
                         data_total['y_test'].extend(data['y_test'])
 
-                both_fn = 'final_both_human_{}.json'.format(_mode)
+                both_fn = 'final_both_human_request_limit_{}.json'.format(limit)
                 with open(both_fn, 'w') as f:
                     print('Saving to', both_fn)
                     f.write(json.dumps(data_total))
@@ -111,7 +132,7 @@ if __name__ == '__main__':
         data_mouse = []
         data_request = []
 
-        param_test_mode = False
+        param_test_mode = True
 
         if not param_test_mode:
             max_features_list = ['sqrt']
@@ -119,17 +140,22 @@ if __name__ == '__main__':
             max_depth_list = [None]
 
         else:
-            max_features_list = [None, 'log2', 'sqrt']
-            n_estimators_list = [10, 50, 100, 150, 200, 1000]
-            max_depth_list = [None, 1, 2, 3, 4]
+            # max_features_list = [None, 'log2', 'sqrt']
+            # n_estimators_list = [10, 50, 100, 150, 200, 1000]
+            # max_depth_list = [None, 1, 2, 3, 4]
+
+            # only max_depth:
+            max_features_list = ['sqrt']
+            n_estimators_list = [50]
+            max_depth_list = list(range(1, 21))
 
         test_scenarios = []
 
         for test_mode in [
-            { 'caption': 'Mouse Data', 'cache_filename': [
-                'feature_cache/final_bot_mouse_advanced.json',
-                'feature_cache/final_both_human_mouse.json',
-            ] },
+            #{ 'caption': 'Mouse Data', 'cache_filename': [
+            #    'feature_cache/final_bot_mouse_advanced.json',
+            #    'feature_cache/final_both_human_mouse.json',
+            #] },
             # { 'caption': 'Request Data', 'cache_filename': [
             #     'old_all.json',
             #] },
@@ -137,10 +163,10 @@ if __name__ == '__main__':
             #    'feature_cache/final_both_request.json',
             #    'feature_cache/final_both_human_request.json',
             #] },
-            # { 'caption': 'Request Data', 'cache_filename': [
-            #     'final_bot_request_new_features.json',
-            #     'final_both_human_request_new_features.json',
-            # ] },
+            { 'caption': 'Request Data', 'cache_filename': [
+                'feature_cache/final_bot_request_new_features.json',
+                'feature_cache/final_both_human_request_new_features.json',
+            ] },
         ]:
             for max_features in max_features_list:
                 for n_estimators in n_estimators_list:
@@ -253,7 +279,8 @@ if __name__ == '__main__':
                 rows.extend(sorted(data, key=lambda r: r[3], reverse=True))
                 table.add_rows(rows)
 
-                fn = 'table_{}{}.tex'.format('request' if i == 0 else 'mouse', '_param_test' if param_test_mode else '')
+                # fn = 'table_{}{}.tex'.format('request' if i == 0 else 'mouse', '_param_test' if param_test_mode else '')
+                fn = 'table_{}{}_only_max_depth.tex'.format('request' if i == 0 else 'mouse', '_param_test' if param_test_mode else '')
                 print('Writing', fn)
 
                 with open(fn, 'w') as f:
@@ -273,7 +300,7 @@ if __name__ == '__main__':
                 ],
             },
             {
-                'disabled': False,
+                'disabled': True,
                 'mode': 'request',
                 'train_test': [
                     'final_bot_request_new_features.json',
@@ -310,6 +337,64 @@ if __name__ == '__main__':
             score = classifier.test_model()
             print('Score:', score)
             print()
+
+    elif mode == 'limit':
+        data = []
+        # limits = [5, 10, 20, 50, 100, None]
+        limits = [ 2, 3, 4, 5, 10, 20, 50, 100, 200, None]
+
+        for limit in limits:
+            classifier = FMClassifier(
+                mode='request',
+            )
+            classifier.load_data(
+                cache=True,
+                cache_filename=[
+                    'final_both_human_request_limit_{}.json'.format(limit),
+                    'final_bot_request_limit_{}.json'.format(limit),
+                ],
+                save_cache=False,
+                bot_human_same_number=True,
+            )
+            t1 = time.time()
+            classifier.train_model()
+            t2 = time.time()
+            score = classifier.test_model()
+            roc_data = classifier.calc_roc_curve()
+            precision, recall, f1 = classifier.calc_prf()
+            # print('n_estimators', n_estimators)
+            # print('max_depth', max_depth)
+            # print('Score:', score)
+            # print()
+            print('LIMIT', [limit, score, precision, recall, f1, roc_data['roc_auc'][1], t2 - t1])
+            data.append([limit, score, precision, recall, f1, roc_data['roc_auc'][1], t2 - t1])
+
+        table = Texttable()
+        table.set_cols_align(['l' for _ in range(len(data[0]))])
+        table.set_cols_valign(['m' for _ in range(len(data[0]))])
+        rows =[
+            [
+                'Data Points / Session',
+                'Accuracy',
+                'Precision',
+                'Recall',
+                'F1 Score',
+                'AUC',
+                'Training Time',
+            ]
+        ]
+        # table.add_rows(data[:10])
+        rows.extend(sorted(data, key=lambda r: r[1], reverse=True))
+        table.add_rows(rows)
+
+        # fn = 'table_{}{}.tex'.format('request' if i == 0 else 'mouse', '_param_test' if param_test_mode else '')
+        fn = 'table_limit_bot.tex'
+        print('Writing', fn)
+
+        with open(fn, 'w') as f:
+            f.write(
+                latextable.draw_latex(table)
+            )
 
     else:
         classifier = FMClassifier(

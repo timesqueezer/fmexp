@@ -122,20 +122,18 @@ class User(db.Model):
 
         return data
 
-    def get_accumulated_request_features(self):
+    def get_accumulated_request_features(self, limit=None):
         data = []
-
 
         request_data_point_q = DataPoint.query.filter_by(
             user_uuid=self.uuid,
             data_type=DataPointDataType.REQUEST.value,
         )
 
-        LIMIT = 10
-        if LIMIT:
+        if limit:
             request_data_point_q = DataPoint.query.filter(
                 DataPoint.id.in_([
-                    dp.id for dp in request_data_point_q.limit(LIMIT)
+                    dp.id for dp in request_data_point_q.limit(limit)
                 ])
             )
 

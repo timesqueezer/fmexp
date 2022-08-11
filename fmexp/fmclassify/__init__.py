@@ -39,19 +39,30 @@ class FMClassifier:
         self,
         instance='fmexp',
         mode='request',
-        n_estimators=100,
-        max_depth=None,
-        max_features='sqrt',
+        n_estimators=False,
+        max_depth=False,
+        max_features=False,
         random_state=None,
     ):
-        self.n_estimators = n_estimators
-        self.max_depth = max_depth
-        self.max_features = max_features
+        if n_estimators is False:
+            self.n_estimators = 100 if 'request' in mode else 50
+        else:
+            self.n_estimators = n_estimators
+
+        if max_depth is False:
+            self.max_depth = None
+        else:
+            self.max_depth = max_depth
+
+        if max_features is False:
+            self.max_features = None if 'request' in mode else 'sqrt'
+        else:
+            self.max_features = max_features
 
         self.clf_mode = 'random_forest'
         self.instance = instance
         self.mode = mode
-        self.batch_size = 2
+        # self.batch_size = 2
         self.random_state = random_state
 
         self.set_initial_params()
@@ -137,6 +148,7 @@ class FMClassifier:
         bot_only=False,
         human_only=False,
         bot_human_same_number=False,
+        limit=None,
     ):
         print('loading training data, test_only={}, cache={}'.format(test_only, cache))
 
@@ -263,7 +275,11 @@ class FMClassifier:
                     y = []
 
                     with app.app_context():
-                        X = [u.get_accumulated_request_features() for u in q]
+                        args = {}
+                        if limit:
+                            args['limit'] = limit
+
+                        X = [u.get_accumulated_request_features(**args) for u in q]
                         y = [1.0 if u.is_bot else 0.0 for u in q]
 
                 elif 'mouse' in self.mode:
