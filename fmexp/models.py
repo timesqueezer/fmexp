@@ -125,10 +125,19 @@ class User(db.Model):
     def get_accumulated_request_features(self):
         data = []
 
+
         request_data_point_q = DataPoint.query.filter_by(
             user_uuid=self.uuid,
             data_type=DataPointDataType.REQUEST.value,
         )
+
+        LIMIT = 10
+        if LIMIT:
+            request_data_point_q = DataPoint.query.filter(
+                DataPoint.id.in_([
+                    dp.id for dp in request_data_point_q.limit(LIMIT)
+                ])
+            )
 
         total_count = fast_query_count(request_data_point_q)
 
@@ -166,7 +175,7 @@ class User(db.Model):
         # Feature 5: time between first and last request in session
         first_dp = request_data_point_q.order_by(DataPoint.created).first()
         last_dp = request_data_point_q.order_by(DataPoint.created.desc()).first()
-        data.append((last_dp.created - first_dp.created).seconds)
+        data.append((last_dp.created - first_dp.created).microseconds // 1000)
 
         # Feature 6: SD of number of / in url
         slash_counts = [
@@ -179,6 +188,17 @@ class User(db.Model):
             for sc in slash_counts
         ]) / len(slash_counts)
         data.append(math.sqrt(slash_variance))
+
+        rel_times = []
+        last_dp = first_dp
+        for dp in request_data_point_q:
+            if dp.id == first_dp.id:
+                continue
+            rel_times.append((dp.created - last_dp.created).microseconds // 1000)
+            last_dp = dp
+
+        data.append(np.mean(rel_times))
+        data.append(np.std(rel_times))
 
         return data
 

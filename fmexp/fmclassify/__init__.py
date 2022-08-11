@@ -27,7 +27,7 @@ from pprint import pprint
 
 from fmexp.fmclassify.mouse_dataset import get_mouse_dataset_data
 
-RANDOM_STATE = 44
+RANDOM_STATE = 2270717344
 
 
 def chunkify(lst, n):
@@ -42,6 +42,7 @@ class FMClassifier:
         n_estimators=100,
         max_depth=None,
         max_features='sqrt',
+        random_state=None,
     ):
         self.n_estimators = n_estimators
         self.max_depth = max_depth
@@ -51,6 +52,7 @@ class FMClassifier:
         self.instance = instance
         self.mode = mode
         self.batch_size = 2
+        self.random_state = random_state
 
         self.set_initial_params()
 
@@ -60,7 +62,7 @@ class FMClassifier:
                 n_estimators=self.n_estimators,
                 max_depth=self.max_depth,
                 max_features=self.max_features,
-                random_state=RANDOM_STATE,
+                random_state=self.random_state or RANDOM_STATE,
                 n_jobs=-1,
             )
 
@@ -331,7 +333,7 @@ class FMClassifier:
 
             else:
                 self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
-                    X, y, test_size=0.1, random_state=RANDOM_STATE
+                    X, y, test_size=0.1, random_state=self.random_state or RANDOM_STATE
                 )
                 print('LENGTHS AFTER SPLIT:')
                 print('y_train', len(self.y_train))
