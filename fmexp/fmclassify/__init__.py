@@ -45,7 +45,7 @@ class FMClassifier:
         random_state=None,
     ):
         if n_estimators is False:
-            self.n_estimators = 100 if 'request' in mode else 50
+            self.n_estimators = 100 if 'request' in mode else 200
         else:
             self.n_estimators = n_estimators
 
@@ -298,8 +298,12 @@ class FMClassifier:
                             p_X = []
                             p_y = []
 
+                            args = {}
+                            if limit:
+                                args['limit'] = limit
+
                             for u in User.query.filter(User.uuid.in_(user_ids)):
-                                mouse_features = u.get_mouse_features()
+                                mouse_features = u.get_mouse_features(**args)
                                 p_X.extend([ac_features for ac_features in mouse_features])
                                 p_y.extend([1.0 if u.is_bot else 0.0 for _ in range(len(mouse_features))])
 

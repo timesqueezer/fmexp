@@ -15,7 +15,7 @@ from fmexp.models import (
 NUM_BINS = 30
 
 
-def user_hist():
+def user_hist(bot=False):
     print('user query', User.query.count())
     print('user query filtered', User.query_filtered().count())
 
@@ -30,7 +30,7 @@ def user_hist():
         .having(db.func.count(DataPoint.id) < 200)
         .filter(
             DataPoint.data_type == DataPointDataType.REQUEST.value,
-            User.query.filter(User.uuid==DataPoint.user_uuid, User.is_bot==False).exists(),
+            User.query.filter(User.uuid==DataPoint.user_uuid, User.is_bot==bot).exists(),
         )
         .all()
     )]

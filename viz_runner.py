@@ -25,6 +25,11 @@ if __name__ == '__main__':
         with app.app_context():
             user_hist()
 
+    elif args.viz_mode == 'bot_hist':
+        app = create_app()
+        with app.app_context():
+            user_hist(bot=True)
+
     elif args.viz_mode == 'roc_curves':
         roc_curves(
             modes=[

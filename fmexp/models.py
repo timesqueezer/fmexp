@@ -200,7 +200,7 @@ class User(db.Model):
 
         return data
 
-    def get_mouse_action_chains(self):
+    def get_mouse_action_chains(self, limit=False):
         ACTION_MAX_LENGTH = 2 # seconds
         SAMPLE_RATE = 30 # 1/s
         SAMPLE_TD_US = 1000_000 / SAMPLE_RATE # microseconds
@@ -214,6 +214,9 @@ class User(db.Model):
             )
             .order_by(DataPoint.id.desc())
         )
+
+        if limit:
+            mouse_data_point_q = mouse_data_point_q.limit(limit)
 
         action_chains = []
         current_chain = []
@@ -280,8 +283,8 @@ class User(db.Model):
             # 'height': height,
         }
 
-    def get_mouse_features(self):
-        mouse_ac_data = self.get_mouse_action_chains()
+    def get_mouse_features(self, limit=False):
+        mouse_ac_data = self.get_mouse_action_chains(limit=limit)
         return extract_mouse_features(mouse_ac_data)
 
 
