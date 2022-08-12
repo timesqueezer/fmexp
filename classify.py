@@ -293,6 +293,8 @@ if __name__ == '__main__':
                     )
 
     elif mode == 'scenarios':
+        data = []
+
         for sc in [
             {
                 'disabled': True,
@@ -318,6 +320,16 @@ if __name__ == '__main__':
                     'final_both_human_mouse_limit_None.json',
                     'final_bot_mouse_limit_None.json',
                 ],
+                'confusion': True,
+            },
+            {
+                'disabled': True,
+                'mode': 'mouse',
+                'train_test': [
+                    'final_both_human_mouse_limit_None.json',
+                    # 'feature_cache/final_both_human_mouse.json',
+                    'feature_cache/final_bot_mouse.json',
+                ],
             },
         ]:
             if sc.get('disabled'):
@@ -338,8 +350,61 @@ if __name__ == '__main__':
             )
             classifier.train_model()
             score = classifier.test_model()
+            t1 = time.time()
+            classifier.train_model()
+            t2 = time.time()
+            score = classifier.test_model()
+            roc_data = classifier.calc_roc_curve()
+            precision, recall, f1 = classifier.calc_prf()
+            data.append([sc['mode'], score, precision, recall, f1, roc_data['roc_auc'][1], t2 - t1])
             print('Score:', score)
             print()
+
+            if sc.get('confusion'):
+                tn, fp, fn, tp = classifier.calc_confusion_matrix_values()
+                confusion_table = Texttable()
+                confusion_table.set_cols_align(['r' for _ in range(3)])
+                confusion_table.set_cols_valign(['m' for _ in range(3)])
+                confusion_rows = [
+                    ['', 'Positive prediction', 'Negative prediction'],
+                    ['Positive value', tp, fn],
+                    ['Negative value', fp, tn],
+                ]
+                confusion_table.add_rows(confusion_rows)
+
+                confusion_fn = 'table_confusion_scenarios.tex'
+                print('Writing', fn)
+
+                with open(confusion_fn, 'w') as f:
+                    f.write(
+                        latextable.draw_latex(confusion_table)
+                    )
+
+        table = Texttable()
+        table.set_cols_align(['l' for _ in range(len(data[0]))])
+        table.set_cols_valign(['m' for _ in range(len(data[0]))])
+        rows = [
+            [
+                'Scenario',
+                'Accuracy',
+                'Precision',
+                'Recall',
+                'F1 Score',
+                'AUC',
+                'Training Time',
+            ]
+        ]
+        # table.add_rows(data[:10])
+        rows.extend(sorted(data, key=lambda r: r[1], reverse=True))
+        table.add_rows(rows)
+
+        fn = 'table_scenarios.tex'
+        print('Writing', fn)
+
+        with open(fn, 'w') as f:
+            f.write(
+                latextable.draw_latex(table)
+            )
 
     elif mode == 'limit':
         data = []

@@ -21,6 +21,7 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
     f1_score,
+    confusion_matrix,
 )
 
 from pprint import pprint
@@ -519,3 +520,9 @@ class FMClassifier:
         )
 
         return precision, recall, f1
+
+    def calc_confusion_matrix_values(self):
+        y_score = [round(i) for i in list(self.clf.predict_proba(self.X_test)[:, 1])]
+        y_test = [round(i) for i in self.y_test]
+
+        return confusion_matrix(y_test, y_score).ravel()

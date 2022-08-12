@@ -32,12 +32,16 @@ if __name__ == '__main__':
 
     elif args.viz_mode == 'roc_curves':
         roc_curves(
-            modes=[
+            #modes=[
                 # 'fmexp_cache_mouse_dataset21_users.json',
                 # 'fmexp_cache_mouse_dataset_user1.json',
-                'mouse_advanced',
+                # 'mouse_advanced',
+            #],
+            # instances=['fmexp1', 'fmexp2'],
+            cache_filename=[
+                'final_both_human_mouse_limit_None.json',
+                'final_bot_mouse_limit_None.json',
             ],
-            instances=['fmexp1', 'fmexp2'],
         )
 
     elif args.viz_mode == 'mouse_heatmap':
