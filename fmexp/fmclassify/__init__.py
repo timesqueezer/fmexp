@@ -192,7 +192,7 @@ class FMClassifier:
                             self.y_train.extend(data['y_train'])
                             self.y_test.extend(data['y_test'])
 
-                else:
+                if 'train' in cache_filename.keys() and 'test' in cache_filename.keys():
                     cache_train = cache_filename['train']
                     cache_test = cache_filename['test']
 

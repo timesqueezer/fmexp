@@ -315,10 +315,29 @@ if __name__ == '__main__':
             },
             {
                 'disabled': False,
-                'mode': 'mouse_advanced',
+                'mode': 'mouse_train_advanced_test',
                 'train_test': [
                     'final_both_human_mouse_limit_None.json',
-                    'final_bot_mouse_limit_None.json',
+                ],
+                'train': [
+                    'feature_cache/final_bot_mouse.json'
+                ],
+                'test': [
+                    'final_bot_mouse_limit_None.json', # aka advanced
+                ],
+                'confusion': True,
+            },
+            {
+                'disabled': False,
+                'mode': 'advanced_train_mouse_test',
+                'train_test': [
+                    'final_both_human_mouse_limit_None.json',
+                ],
+                'train': [
+                    'final_bot_mouse_limit_None.json', # aka advanced
+                ],
+                'test': [
+                    'feature_cache/final_bot_mouse.json'
                 ],
                 'confusion': True,
             },
@@ -329,6 +348,34 @@ if __name__ == '__main__':
                     'final_both_human_mouse_limit_None.json',
                     # 'feature_cache/final_both_human_mouse.json',
                     'feature_cache/final_bot_mouse.json',
+                ],
+            },
+            {
+                'disabled': False,
+                'mode': 'mouse_advanced',
+                'title': 'Website 1 training data, website 2 test data',
+                'train_test': [
+                    'final_bot_mouse_limit_None.json', # aka advanced
+                ],
+                'train': [
+                    'final_fmexp_human_mouse_limit_None.json',
+                ],
+                'test': [
+                    'final_fmexp2_human_mouse_limit_None.json',
+                ],
+            },
+            {
+                'disabled': False,
+                'mode': 'mouse_advanced',
+                'title': 'Website 2 training data, website 1 test data',
+                'train_test': [
+                    'final_bot_mouse_limit_None.json', # aka advanced
+                ],
+                'train': [
+                    'final_fmexp2_human_mouse_limit_None.json',
+                ],
+                'test': [
+                    'final_fmexp_human_mouse_limit_None.json',
                 ],
             },
         ]:
@@ -356,7 +403,14 @@ if __name__ == '__main__':
             score = classifier.test_model()
             roc_data = classifier.calc_roc_curve()
             precision, recall, f1 = classifier.calc_prf()
-            data.append([sc['mode'], score, precision, recall, f1, roc_data['roc_auc'][1], t2 - t1])
+            data.append([
+                sc.get('title') or sc['mode'],
+                score,
+                precision,
+                recall,
+                f1,
+                roc_data['roc_auc'][1], t2 - t1],
+            )
             print('Score:', score)
             print()
 
