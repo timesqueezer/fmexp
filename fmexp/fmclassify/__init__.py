@@ -154,6 +154,7 @@ class FMClassifier:
         save_test_only=False,
         user_uuids=None,
         train_only=False,
+        append=False,
     ):
         print('loading training data, test_only={}, cache={}'.format(test_only, cache))
 
@@ -364,8 +365,13 @@ class FMClassifier:
                 self.X_train, self.y_train = [], []
 
             elif train_only:
-                self.X_test, self.y_test = [], []
-                self.X_train, self.y_train = X, y
+                if append:
+                    self.X_train.extend(X)
+                    self.y_train.extend(y)
+
+                else:
+                    self.X_test, self.y_test = [], []
+                    self.X_train, self.y_train = X, y
 
             else:
                 self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(

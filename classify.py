@@ -615,7 +615,7 @@ if __name__ == '__main__':
 
         user_uuids_train, user_uuids_test = train_test_split(
             all_user_uuids,
-            test_size=0.1,
+            test_size=0.4,
             random_state=42,
         )
 
@@ -630,6 +630,13 @@ if __name__ == '__main__':
             train_only=True,
             bot_human_same_number=True,
         )
+        clf1.instance = 'fmexp2'
+        clf1.load_data(
+            cache=False,
+            save_cache=False,
+            train_only=True,
+            append=True,
+        )
         clf1.train_model()
         clf2 = FMClassifier(
             mode='request',
@@ -641,6 +648,13 @@ if __name__ == '__main__':
             user_uuids=user_uuids_train,
             train_only=True,
             bot_human_same_number=True,
+        )
+        clf2.instance = 'fmexp2'
+        clf2.load_data(
+            cache=False,
+            save_cache=False,
+            train_only=True,
+            append=True,
         )
         clf2.train_model()
 
