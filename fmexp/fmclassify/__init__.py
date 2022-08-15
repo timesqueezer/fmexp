@@ -152,6 +152,8 @@ class FMClassifier:
         bot_human_same_number=False,
         limit=None,
         save_test_only=False,
+        user_uuids=None,
+        train_only=False,
     ):
         print('loading training data, test_only={}, cache={}'.format(test_only, cache))
 
@@ -274,6 +276,9 @@ class FMClassifier:
                     if test_only:
                         q = q.limit(q.count() // 10)
 
+                    if user_uuids:
+                        q = q.filter(User.uuid.in_(user_uuids))
+
                     # get data to not share context between processes
                     q = q.all()
 
@@ -357,6 +362,10 @@ class FMClassifier:
             if test_only or save_test_only:
                 self.X_test, self.y_test = X, y
                 self.X_train, self.y_train = [], []
+
+            elif train_only:
+                self.X_test, self.y_test = [], []
+                self.X_train, self.y_train = X, y
 
             else:
                 self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
@@ -458,7 +467,7 @@ class FMClassifier:
                 return_dict=True,
             )
 
-    def predict(self, user):
+    def predict(self, user, probability=False):
         X = None
 
         if 'request' in self.mode:
@@ -473,9 +482,15 @@ class FMClassifier:
                 return [-1]
 
         t1 = time.time()
-        score = self.clf.predict(X)
+
+        score = None
+        if probability:
+            score = self.clf.predict_proba(X)[0, 1]
+        else:
+            score = self.clf.predict(X)
+
         t2 = time.time()
-        print('P time:', t2 - t1)
+        # print('P time:', t2 - t1)
         return score
 
     def get_roc_auc_score(self):

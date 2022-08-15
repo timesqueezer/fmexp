@@ -3,12 +3,23 @@ import argparse
 
 import json
 
-# import flwr as fl
+import latextable
 
 from multiprocessing import Process, cpu_count, Queue
 
 from texttable import Texttable
-import latextable
+
+from sklearn.model_selection import train_test_split
+
+from sklearn.metrics import (
+    roc_auc_score,
+    roc_curve,
+    auc,
+    precision_score,
+    recall_score,
+    f1_score,
+    confusion_matrix,
+)
 
 from fmexp import create_app
 from fmexp.fmclassify import FMClassifier
@@ -39,6 +50,7 @@ if __name__ == '__main__':
             'data_loader',
             'scenarios',
             'limit',
+            'combined',
         ]
     )
     parser.add_argument('-cm', default='mouse_advanced', required=False, dest='compare_mode', choices=['request', 'request_advanced', 'mouse', 'mouse_advanced'])
@@ -588,6 +600,105 @@ if __name__ == '__main__':
             f.write(
                 latextable.draw_latex(table)
             )
+
+    elif mode == 'combined':
+        from fmexp.models import User
+
+        all_user_uuids = []
+        additional_config = None
+        if instance == 'fmexp2':
+            additional_config = 'fmexp.config2'
+
+        app = create_app(additional_config=additional_config)
+        with app.app_context():
+            all_user_uuids = [u.uuid for u in User.query_filtered()]
+
+        user_uuids_train, user_uuids_test = train_test_split(
+            all_user_uuids,
+            test_size=0.1,
+            random_state=42,
+        )
+
+        clf1 = FMClassifier(
+            mode='mouse_advanced',
+            instance=instance,
+        )
+        clf1.load_data(
+            cache=False,
+            save_cache=False,
+            user_uuids=user_uuids_train,
+            train_only=True,
+            bot_human_same_number=True,
+        )
+        clf1.train_model()
+        clf2 = FMClassifier(
+            mode='request',
+            instance=instance,
+        )
+        clf2.load_data(
+            cache=False,
+            save_cache=False,
+            user_uuids=user_uuids_train,
+            train_only=True,
+            bot_human_same_number=True,
+        )
+        clf2.train_model()
+
+        with app.app_context():
+            predictions = []
+            actual = []
+
+            for user_uuid in user_uuids_test:
+                u = User.query.filter_by(uuid=user_uuid).first()
+                # request_data = u.get_accumulated_request_features()
+                mouse_prediction_probability = clf1.predict(u, probability=True)
+                if mouse_prediction_probability == [-1]:
+                    continue
+                request_prediction_probability = clf2.predict(u, probability=True)
+                # print('mouse_prediction_probability', mouse_prediction_probability)
+                # print('request_prediction_probability', request_prediction_probability)
+
+                predictions.append(
+                    round((mouse_prediction_probability + request_prediction_probability) / 2)
+                )
+                actual.append(1 if u.is_bot else 0)
+
+            print(predictions)
+            print(actual)
+
+            tp = len([p for i, p in enumerate(predictions) if p == 1 and p == actual[i]])
+            fp = len([p for i, p in enumerate(predictions) if p == 1 and p != actual[i]])
+
+            tn = len([p for i, p in enumerate(predictions) if p == 0 and p == actual[i]])
+            fn = len([p for i, p in enumerate(predictions) if p == 0 and p != actual[i]])
+
+            print('TP', tp)
+            print('FP', fp)
+            print('TN', tn)
+            print('FN', fn)
+
+            accuracy = (tp + tn) / len(predictions)
+
+            fpr, tpr, thresholds = roc_curve(
+                actual,
+                predictions,
+            )
+            _auc = auc(fpr, tpr)
+            precision = precision_score(
+                actual,
+                predictions,
+            )
+            recall = recall_score(
+                actual,
+                predictions,
+            )
+
+            print('FPR', fpr)
+            print('TRP', tpr)
+            print('Accuracy', accuracy)
+            print('AUC', _auc)
+            print('Precision', precision)
+            print('Recall', recall)
 
     else:
         classifier = FMClassifier(
