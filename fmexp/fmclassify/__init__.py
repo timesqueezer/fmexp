@@ -148,8 +148,10 @@ class FMClassifier:
         cache_filename=None,
         bot_only=False,
         human_only=False,
+        live_bot_only=False,
         bot_human_same_number=False,
         limit=None,
+        save_test_only=False,
     ):
         print('loading training data, test_only={}, cache={}'.format(test_only, cache))
 
@@ -192,21 +194,14 @@ class FMClassifier:
                             self.y_train.extend(data['y_train'])
                             self.y_test.extend(data['y_test'])
 
-                if 'train' in cache_filename.keys() and 'test' in cache_filename.keys():
+                if 'train' in cache_filename.keys():
                     cache_train = cache_filename['train']
-                    cache_test = cache_filename['test']
 
                     cache_train_filenames = []
-                    cache_test_filenames = []
                     if type(cache_train) == str:
                         cache_train_filenames.append(cache_train)
                     else:
                         cache_train_filenames.extend(cache_train)
-
-                    if type(cache_test) == str:
-                        cache_test_filenames.append(cache_test)
-                    else:
-                        cache_test_filenames.extend(cache_test)
 
                     for i, cf in enumerate(cache_train_filenames):
                         print('Loading training data from cache file:', i, cf)
@@ -216,6 +211,17 @@ class FMClassifier:
                             self.X_train.extend(data['X_test'])
                             self.y_train.extend(data['y_train'])
                             self.y_train.extend(data['y_test'])
+
+                if 'test' in cache_filename.keys():
+                    cache_test = cache_filename['test']
+
+                    cache_test_filenames = []
+
+                    if type(cache_test) == str:
+                        cache_test_filenames.append(cache_test)
+                    else:
+                        cache_test_filenames.extend(cache_test)
+
 
                     for i, cf in enumerate(cache_test_filenames):
                         print('Loading testing data from cache file:', i, cf)
@@ -257,7 +263,7 @@ class FMClassifier:
                 app = create_app(additional_config=additional_config)
 
                 with app.app_context():
-                    q = User.query_filtered().order_by(User.email)
+                    q = User.query_filtered(reverse_threshold=live_bot_only).order_by(User.email)
 
                     if bot_only:
                         q = q.filter(User.is_bot == True)
@@ -281,7 +287,7 @@ class FMClassifier:
                             args['limit'] = limit
 
                         X = [u.get_accumulated_request_features(**args) for u in q]
-                        y = [1.0 if u.is_bot else 0.0 for u in q]
+                        y = [1.0 if u.is_bot or live_bot_only else 0.0 for u in q]
 
                 elif 'mouse' in self.mode:
                     X = []
@@ -306,7 +312,7 @@ class FMClassifier:
                             for u in User.query.filter(User.uuid.in_(user_ids)):
                                 mouse_features = u.get_mouse_features(**args)
                                 p_X.extend([ac_features for ac_features in mouse_features])
-                                p_y.extend([1.0 if u.is_bot else 0.0 for _ in range(len(mouse_features))])
+                                p_y.extend([1.0 if u.is_bot or live_bot_only else 0.0 for _ in range(len(mouse_features))])
 
                             q.put({ 'X': p_X, 'y': p_y })
 
@@ -314,7 +320,7 @@ class FMClassifier:
 
                     all_user_ids = [
                         u.uuid for u in q
-                        if not u.is_bot
+                        if live_bot_only or not u.is_bot
                         or (u.bot_mouse_mode == 'advanced_random_delays' and self.mode == 'mouse_advanced')
                         or (u.bot_mouse_mode != 'advanced_random_delays' and self.mode != 'mouse_advanced')
                     ]
@@ -348,7 +354,7 @@ class FMClassifier:
                         p.join()
                         print(f'[{i}] Finished')
 
-            if test_only:
+            if test_only or save_test_only:
                 self.X_test, self.y_test = X, y
                 self.X_train, self.y_train = [], []
 

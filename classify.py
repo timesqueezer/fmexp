@@ -14,6 +14,8 @@ from fmexp import create_app
 from fmexp.fmclassify import FMClassifier
 from fmexp.fmclassify.client import FMFederatedClient
 
+from fmexp.fmviz.roc_curves import roc_curves
+
 
 def chunkify(lst, n):
     return [ lst[i::n] for i in range(n) ]
@@ -39,7 +41,7 @@ if __name__ == '__main__':
             'limit',
         ]
     )
-    parser.add_argument('-cm', default='mouse', required=False, dest='compare_mode', choices=['request', 'request_advanced', 'mouse', 'mouse_advanced'])
+    parser.add_argument('-cm', default='mouse_advanced', required=False, dest='compare_mode', choices=['request', 'request_advanced', 'mouse', 'mouse_advanced'])
     parser.add_argument('-i', default='fmexp', required=False, dest='instance', choices=['fmexp', 'fmexp2'])
     parser.add_argument('-e', default=5, required=False, dest='epochs')
     # parser.add_argument('-u', default=1, required=False, dest='mouse_user')
@@ -55,46 +57,89 @@ if __name__ == '__main__':
     if mode == 'mouse_dataset':
         print('Training on Mouse')
         classifier = FMClassifier(mode=compare_mode, instance=instance)
-        classifier.load_data()
+        classifier.load_data(
+            cache=True,
+            save_cache=False,
+            cache_filename={
+                'train_test': [
+                    'final_both_human_mouse_limit_None.json',
+                    'final_bot_mouse_limit_None.json',
+                    # 'feature_cache/final_bot_mouse.json',
+                ]
+            },
+            bot_human_same_number=False,
+        )
         classifier.train_model()
-        score = classifier.test_model()
-        print('Score:', score)
+        # score = classifier.test_model()
+        # print('Score:', score)
 
         classifier.mode = mode
 
         # classifier.load_data(test_only=True, cache=True, mouse_users=list(range(1, 22)), cache_instance_name='fmexp')
-        classifier.load_data(test_only=True, cache=True, cache_filename='fmexp_cache_mouse_dataset_user1.json')
+        classifier.load_data(
+            test_only=True,
+            cache=True,
+            save_cache=False,
+            cache_filename={
+                'test': [
+                    'cache_old/fmexp_cache_mouse_dataset_user1.json',
+                    'final_both_human_mouse_limit_None.json',
+                    'final_bot_mouse_limit_None.json',
+                ]
+            },
+        )
         score = classifier.test_model()
+        roc_data = classifier.calc_roc_curve()
+        precision, recall, f1 = classifier.calc_prf()
+        tn, fp, fn, tp = classifier.calc_confusion_matrix_values()
+        print('FPR:', fp/(fp+tn))
+        print('TPR:', tp/(tp+fn))
+        print('FNR:', fn/(fn+tp))
+        print('TNR:', tn/(tn+fp))
+        confusion_table = Texttable()
+        confusion_table.set_cols_align(['r' for _ in range(3)])
+        confusion_table.set_cols_valign(['m' for _ in range(3)])
+        confusion_rows = [
+            ['', 'Positive prediction', 'Negative prediction'],
+            ['Positive value', tp, fn],
+            ['Negative value', fp, tn],
+        ]
+        confusion_table.add_rows(confusion_rows)
+
+        confusion_fn = 'table_confusion_dataset.tex'
+        print('Writing', fn)
+
+        with open(confusion_fn, 'w') as f:
+            f.write(
+                latextable.draw_latex(confusion_table)
+            )
         print('Score:', score)
+        print('Precision:', precision)
+        print('Recall:', recall)
+        print('AUC:', roc_data['roc_auc'][1])
         print()
+        roc_curves(roc_data=roc_data)
 
     elif mode == 'data_loader':
         combine_mode = False
         if not combine_mode:
             # for instance in ['fmexp', 'fmexp2']:
             for instance in ['fmexp']:
-                for limit in [1, 2, 3, 4, 5, 10, 20, 50, 100, 200, None]:
-                    classifier = FMClassifier(mode='mouse_advanced', instance=instance)
-                    # classifier = FMClassifier(mode='request', instance='fmexp2')
+                # for limit in [1, 2, 3, 4, 5, 10, 20, 50, 100, 200, None]:
+                for _mode in ['request']:
+                    classifier = FMClassifier(mode=_mode, instance=instance)
+                    cache_filename = 'final_live_bot.json'
 
-                    # cache_filename = 'old_bot.json'
-
-                    # cache_filename = 'final_bot_request_new_features.json'
-                    # cache_filename = 'final_bot_request_new_features.json'
-                    cache_filename = 'final_bot_mouse_limit_{}.json'.format(
-                        # instance,
-                        limit,
-                    )
                     try:
                         classifier.load_data(
                             cache=False,
                             save_cache=True,
                             cache_filename=cache_filename,
-                            bot_only=True,
-                            limit=limit,
+                            live_bot_only=True,
+                            save_test_only=True,
                         )
                     except Exception as e:
-                        print('DERP DEPRKLWEOKRNERW', e, limit)
+                        print('DERP DEPRKLWEOKRNERW', e)
                     # classifier.load_data(cache=False, save_cache=True, cache_filename=cache_filename, human_only=True)
 
         else:
@@ -314,7 +359,7 @@ if __name__ == '__main__':
                 ],
             },
             {
-                'disabled': False,
+                'disabled': True,
                 'mode': 'mouse_train_advanced_test',
                 'train_test': [
                     'final_both_human_mouse_limit_None.json',
@@ -328,7 +373,7 @@ if __name__ == '__main__':
                 'confusion': True,
             },
             {
-                'disabled': False,
+                'disabled': True,
                 'mode': 'advanced_train_mouse_test',
                 'train_test': [
                     'final_both_human_mouse_limit_None.json',
@@ -363,6 +408,7 @@ if __name__ == '__main__':
                 'test': [
                     'final_fmexp2_human_mouse_limit_None.json',
                 ],
+                'confusion': True,
             },
             {
                 'disabled': False,
@@ -377,6 +423,23 @@ if __name__ == '__main__':
                 'test': [
                     'final_fmexp_human_mouse_limit_None.json',
                 ],
+                'confusion': True,
+            },
+            {
+                'disabled': False,
+                'mode': 'mouse_advanced',
+                'title': 'Live Bots Comparison',
+                'train': [
+                    'final_bot_mouse_limit_None.json', # aka advanced
+                    'final_both_human_mouse_limit_None.json',
+                ],
+                'test': [
+                    # 'final_bot_mouse_limit_None.json', # aka advanced
+                    # 'final_both_human_mouse_limit_None.json',
+                    'final_live_bot.json',
+                ],
+                'confusion': True,
+                'not_same_number': True,
             },
         ]:
             if sc.get('disabled'):
@@ -389,11 +452,14 @@ if __name__ == '__main__':
                 mode=sc_mode,
                 instance=instance,
             )
+
+            same_number = not sc['not_same_number'] if sc.get('not_same_number') is not None else True
+
             classifier.load_data(
                 cache=True,
                 save_cache=False,
                 cache_filename=sc,
-                bot_human_same_number=True,
+                bot_human_same_number=same_number,
             )
             classifier.train_model()
             score = classifier.test_model()
@@ -426,7 +492,7 @@ if __name__ == '__main__':
                 ]
                 confusion_table.add_rows(confusion_rows)
 
-                confusion_fn = 'table_confusion_scenarios.tex'
+                confusion_fn = 'table_confusion_scenarios_{}.tex'.format(sc['title'].lower().replace(' ', '_'))
                 print('Writing', fn)
 
                 with open(confusion_fn, 'w') as f:

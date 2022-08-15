@@ -55,7 +55,8 @@ class User(db.Model):
     bot_mouse_mode = db.Column(db.String, nullable=True) # 'basic', 'basic_random_delays', 'advanced', 'advanced_random_delays'
 
     @staticmethod
-    def query_filtered(threshold=2, data_type=None):
+    def query_filtered(threshold=2, data_type=None, reverse_threshold=False):
+        print('reverse_threshold', reverse_threshold)
 
         data_point_count_q = (
             db.session.query(
@@ -68,9 +69,15 @@ class User(db.Model):
             # data_point_alias = aliased(DataPoint)
             data_point_count_q = data_point_count_q.filter(DataPoint.data_type == data_type)
 
-        q = User.query.filter(
-            data_point_count_q.as_scalar() > threshold
-        )
+        if not reverse_threshold:
+            q = User.query.filter(
+                data_point_count_q.as_scalar() > threshold
+            )
+
+        else:
+            q = User.query.filter(
+                data_point_count_q.as_scalar() <= threshold
+            )
 
         return q
 
