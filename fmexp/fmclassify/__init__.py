@@ -508,6 +508,9 @@ class FMClassifier:
         }
 
     def calc_prf(self):
+        print('HMMMMM')
+        print(self.clf.predict_proba(self.X_test)[:10])
+
         y_score = [round(i) for i in list(self.clf.predict_proba(self.X_test)[:, 1])]
         # print('self.y_test', [m for m in self.y_test if type(m) != float])
         # print('y_score', [m for m in y_score if type(m) != float])

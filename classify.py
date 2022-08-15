@@ -63,6 +63,7 @@ if __name__ == '__main__':
             cache_filename={
                 'train_test': [
                     'final_both_human_mouse_limit_None.json',
+                    # 'cache_old/fmexp_cache_mouse_dataset_user1.json',
                     'final_bot_mouse_limit_None.json',
                     # 'feature_cache/final_bot_mouse.json',
                 ]
@@ -82,14 +83,18 @@ if __name__ == '__main__':
             save_cache=False,
             cache_filename={
                 'test': [
-                    'cache_old/fmexp_cache_mouse_dataset_user1.json',
+                    'cache_old/fmexp_cache_mouse_dataset21_users.json',
                     'final_both_human_mouse_limit_None.json',
                     'final_bot_mouse_limit_None.json',
                 ]
             },
+            bot_human_same_number=False,
         )
+        # print('X_test', classifier.X_test[:10])
+        # print('y_test', classifier.y_test[:10])
+
         score = classifier.test_model()
-        roc_data = classifier.calc_roc_curve()
+        # roc_data = classifier.calc_roc_curve()
         precision, recall, f1 = classifier.calc_prf()
         tn, fp, fn, tp = classifier.calc_confusion_matrix_values()
         print('FPR:', fp/(fp+tn))
@@ -116,9 +121,9 @@ if __name__ == '__main__':
         print('Score:', score)
         print('Precision:', precision)
         print('Recall:', recall)
-        print('AUC:', roc_data['roc_auc'][1])
+        # print('AUC:', roc_data['roc_auc'][1])
         print()
-        roc_curves(roc_data=roc_data)
+        # roc_curves(roc_data=roc_data)
 
     elif mode == 'data_loader':
         combine_mode = False
