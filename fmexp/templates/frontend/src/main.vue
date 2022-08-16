@@ -72,14 +72,14 @@
         await this.init()
         this.showConsentAlert = false
 
-        const div = document.createElement('div')
+        /* const div = document.createElement('div')
         div.style.position = 'absolute'
         div.style.top = '0px'
         div.style.left = '0px'
         div.style.width = '40px'
         div.style.height = '40px'
         div.style.background = 'green'
-        document.body.appendChild(div)
+        document.body.appendChild(div) */
       },
       updateIsBot(isBot) {
         this.isBot = isBot
