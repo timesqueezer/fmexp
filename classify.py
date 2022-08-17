@@ -371,9 +371,38 @@ if __name__ == '__main__':
                 'disabled': True,
                 'mode': 'request',
                 'train_test': [
-                    'final_bot_request_new_features.json',
-                    'final_both_human_request_new_features.json',
+                    'feature_cache/final_bot_request_new_features.json',
+                    'feature_cache/final_both_human_request_new_features.json',
                 ],
+            },
+            {
+                'disabled': False,
+                'mode': 'mouse_advanced',
+                'title': 'Advanced Mouse',
+                'train_test': [
+                    'final_both_human_mouse_limit_None.json',
+                    'final_bot_mouse_limit_None.json', # aka advanced
+                ],
+                'confusion': True,
+            },
+            {
+                'disabled': False,
+                'mode': 'request',
+                'title': 'Request',
+                'train_test': [
+                    'feature_cache/final_bot_request_new_features.json',
+                    'feature_cache/final_both_human_request_new_features.json',
+                ],
+                'confusion': True,
+            },
+            {
+                'disabled': False,
+                'mode': 'request',
+                'title': 'Request Old',
+                'train_test': [
+                    'old_all.json'
+                ],
+                'confusion': True,
             },
             {
                 'disabled': True,
@@ -413,7 +442,7 @@ if __name__ == '__main__':
                 ],
             },
             {
-                'disabled': False,
+                'disabled': True,
                 'mode': 'mouse_advanced',
                 'title': 'Website 1 training data, website 2 test data',
                 'train_test': [
@@ -428,7 +457,7 @@ if __name__ == '__main__':
                 'confusion': True,
             },
             {
-                'disabled': False,
+                'disabled': True,
                 'mode': 'mouse_advanced',
                 'title': 'Website 2 training data, website 1 test data',
                 'train_test': [
@@ -443,7 +472,7 @@ if __name__ == '__main__':
                 'confusion': True,
             },
             {
-                'disabled': False,
+                'disabled': True,
                 'mode': 'mouse_advanced',
                 'title': 'Live Bots Comparison',
                 'train': [
@@ -500,12 +529,12 @@ if __name__ == '__main__':
             if sc.get('confusion'):
                 tn, fp, fn, tp = classifier.calc_confusion_matrix_values()
                 confusion_table = Texttable()
-                confusion_table.set_cols_align(['r' for _ in range(3)])
-                confusion_table.set_cols_valign(['m' for _ in range(3)])
+                confusion_table.set_cols_align(['r' for _ in range(4)])
+                confusion_table.set_cols_valign(['m' for _ in range(4)])
                 confusion_rows = [
-                    ['', 'Positive prediction', 'Negative prediction'],
-                    ['Positive value', tp, fn],
-                    ['Negative value', fp, tn],
+                    ['', 'Positive prediction', 'Negative prediction', 'Rate'],
+                    ['Positive value', tp, fn, '{} FNR'.format(fn / (fn + tp))],
+                    ['Negative value', fp, tn, '{} FPR'.format(fp / (fp + tn))],
                 ]
                 confusion_table.add_rows(confusion_rows)
 
